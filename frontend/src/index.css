@@ -1,0 +1,332 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Outfit:wght@200;300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  --color-brand-maroon: var(--color-brand-maroon);
+  --color-brand-maroonDark: var(--color-brand-maroonDark);
+  --color-brand-maroonLight: var(--color-brand-maroonLight);
+  --color-brand-gold: var(--color-brand-gold);
+  --color-brand-goldDark: var(--color-brand-goldDark);
+  --color-brand-goldLight: var(--color-brand-goldLight);
+  --color-brand-darkBg: var(--color-brand-darkBg);
+  --color-brand-panelBg: var(--color-brand-panelBg);
+  --color-brand-panelBorder: var(--color-brand-panelBorder);
+
+  --font-serif: 'Cinzel', 'Cormorant Garamond', serif;
+  --font-sans: 'Outfit', 'Inter', sans-serif;
+
+  --background-image-gold-metallic: linear-gradient(135deg, #BF953F 0%, #FCF6BA 25%, #B38728 50%, #FBF5B7 75%, #AA771C 100%);
+  --background-image-dark-metallic: linear-gradient(180deg, var(--color-brand-panelBg) 0%, var(--color-brand-darkBg) 100%);
+  --background-image-luxury-gradient: linear-gradient(135deg, var(--color-brand-panelBg) 0%, var(--color-brand-darkBg) 100%);
+
+  --animate-pulse-subtle: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@layer base {
+  :root {
+    --color-brand-maroon: #4A0E17;
+    --color-brand-maroonDark: #1C0508;
+    --color-brand-maroonLight: #6A1924;
+    --color-brand-gold: #C9A84C;
+    --color-brand-goldDark: #B8860B;
+    --color-brand-goldLight: #F5E6A3;
+    --color-brand-darkBg: #0A0A0A;
+    --color-brand-panelBg: #121212;
+    --color-brand-panelBorder: #222222;
+    --text-color: #FFF8F0; /* Warm white */
+    --text-muted: #D4C5A0; /* Champagne secondary */
+    --glass-bg: rgba(18, 18, 18, 0.75);
+    --glass-border: rgba(201, 168, 76, 0.25);
+    --shadow-color: rgba(0, 0, 0, 0.7);
+
+    /* Background Video controls for Dark Mode */
+    --bg-video-opacity: 0.45;
+    --bg-video-filter: brightness(1.35) contrast(1.25) saturate(1.15);
+    --bg-video-vignette: radial-gradient(circle at center, rgba(0,0,0,0) 30%, rgba(10,10,10,0.55) 85%);
+    --bg-video-overlay: linear-gradient(to bottom, #0A0A0A 0%, rgba(10,10,10,0.15) 50%, #0A0A0A 100%);
+  }
+
+  .light {
+    --color-brand-maroon: #4A0E17;
+    --color-brand-maroonDark: #F8F4EE;
+    --color-brand-maroonLight: #8C3E49;
+    --color-brand-gold: #B8860B; /* Dark gold on light mode */
+    --color-brand-goldDark: #4A3728; /* Charcoal brown */
+    --color-brand-goldLight: #C9A84C; /* Metallic gold highlights */
+    --color-brand-darkBg: #F8F4EE; /* Warm light ivory */
+    --color-brand-panelBg: #F0EAE0; /* Soft creamy beige panels */
+    --color-brand-panelBorder: #E0D8CD;
+    --text-color: #2C1810; /* Deep cocoa typography */
+    --text-muted: #5A483E; /* Soft bronze secondary */
+    --glass-bg: rgba(240, 234, 224, 0.8);
+    --glass-border: rgba(184, 134, 11, 0.25);
+    --shadow-color: rgba(44, 24, 16, 0.12);
+
+    /* Background Video controls for Light Mode */
+    --bg-video-opacity: 0.28;
+    --bg-video-filter: brightness(1.5) contrast(1.2) saturate(1.1) opacity(0.85);
+    --bg-video-vignette: radial-gradient(circle at center, rgba(255,255,255,0) 30%, rgba(248,244,238,0.6) 85%);
+    --bg-video-overlay: linear-gradient(to bottom, #F8F4EE 0%, rgba(248,244,238,0.18) 50%, #F8F4EE 100%);
+  }
+
+  html {
+    scroll-behavior: auto; /* Handled by Lenis smooth scroll */
+    background-color: var(--color-brand-darkBg);
+    color: var(--text-color);
+    font-family: 'Outfit', 'Inter', sans-serif;
+  }
+  
+  body {
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background-color: var(--color-brand-darkBg);
+    color: var(--text-color);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Cinzel', 'Playfair Display', serif;
+  }
+
+  /* Global Theme transition rules on structural/component elements */
+  html, body, nav, footer, .glass-panel, .glass-nav, input, textarea, select, button, a {
+    transition: background-color 0.6s cubic-bezier(0.25, 1, 0.5, 1), border-color 0.6s cubic-bezier(0.25, 1, 0.5, 1), color 0.6s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.6s cubic-bezier(0.25, 1, 0.5, 1), backdrop-filter 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+}
+
+/* Custom Scrollbar for Luxury Experience */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0D0506;
+}
+::-webkit-scrollbar-thumb {
+  background: #4A0E17;
+  border: 2px solid #0D0506;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #D4AF37;
+}
+
+/* Custom Cursor class */
+.custom-cursor {
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(212, 175, 55, 0.8);
+  border-radius: 50%;
+  position: fixed;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 9999;
+  transition: width 0.3s, height 0.3s, background-color 0.3s, border-color 0.3s;
+  mix-blend-mode: difference;
+}
+
+.custom-cursor-dot {
+  width: 4px;
+  height: 4px;
+  background-color: #D4AF37;
+  border-radius: 50%;
+  position: fixed;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.custom-cursor.hovered {
+  width: 50px;
+  height: 50px;
+  background-color: rgba(212, 175, 55, 0.1);
+  border-color: #D4AF37;
+}
+
+/* Glassmorphism Accents */
+.glass-panel {
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 8px 32px 0 var(--shadow-color);
+}
+
+.glass-panel-heavy {
+  background: var(--color-brand-panelBg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--color-brand-panelBorder);
+  box-shadow: 0 12px 48px 0 var(--shadow-color);
+}
+
+.glass-nav {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 4px 20px 0 var(--shadow-color);
+}
+
+/* Magnetic Button support helper */
+.magnetic-btn {
+  display: inline-block;
+  position: relative;
+  transition: transform 0.1s ease-out;
+}
+
+/* Metallic Text Sheen effect */
+.text-gold-metallic {
+  background: linear-gradient(135deg, #BF953F 0%, #FCF6BA 25%, #B38728 50%, #FBF5B7 75%, #AA771C 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Fluid Shader container */
+#logo-fluid-canvas {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+}
+
+/* Lenis Scroll Container Fixes */
+html.lenis {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overflow: clip;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
+
+/* Premium Gold Shimmer & Light Sweep Animations */
+@keyframes goldShimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.metallic-gold-shimmer {
+  background: linear-gradient(
+    90deg,
+    #9A771C 0%,
+    #FBF5B7 25%,
+    #B38728 50%,
+    #FCF6BA 75%,
+    #9A771C 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: goldShimmer 5s linear infinite;
+  text-shadow: 0 0 20px rgba(212, 175, 55, 0.15);
+}
+
+@keyframes lightSweep {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.light-sweep-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.light-sweep-effect::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.3) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-25deg);
+  transition: 0.75s;
+}
+
+.light-sweep-effect:hover::after {
+  left: 150%;
+  transition: 0.75s;
+}
+
+/* Premium Luxury Typography Heading Scale */
+.luxury-title-lg {
+  font-family: 'Cinzel', 'Playfair Display', serif;
+  font-weight: 900;
+  letter-spacing: 0.15em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+/* Sparkle decoration element animation */
+.sparkle-star {
+  position: absolute;
+  pointer-events: none;
+  background: radial-gradient(circle, #FFF 10%, rgba(212, 175, 55, 0.9) 50%, transparent 100%);
+  border-radius: 50%;
+  opacity: 0;
+  animation: sparkleStarAnim 1.6s ease-out infinite;
+}
+
+@keyframes sparkleStarAnim {
+  0% {
+    transform: scale(0) rotate(0deg);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.3) rotate(180deg);
+    opacity: 0;
+  }
+}
+
+.gold-shimmer {
+  background: linear-gradient(
+    90deg,
+    #C9A84C 0%,
+    #F5E6A3 20%,
+    #C9A84C 40%,
+    #B8860B 60%,
+    #C9A84C 80%,
+    #F5E6A3 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+

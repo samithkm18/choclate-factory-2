@@ -1,0 +1,48 @@
+{
+  "nav": {
+    "catalog": "Catalog",
+    "builder": "Custom Box",
+    "about": "About Us",
+    "login": "Log In",
+    "profile": "Profile",
+    "cart": "Bag"
+  },
+  "home": {
+    "title": "Mani's Private Reserve",
+    "explore": "Explore Showcase",
+    "newsletter_title": "JOIN THE CHOCOLATE CLUB",
+    "newsletter_desc": "Subscribe to receive exclusive access to private reserve batches, new arrival spotlights, and custom chocolate tastings.",
+    "cta_request": "Request Access"
+  },
+  "catalog": {
+    "title": "LUXURY CONFECTIONERY CATALOG",
+    "search_placeholder": "Search chocolate reserve...",
+    "add_to_cart": "Add to Bag",
+    "out_of_stock": "Out of Stock",
+    "inspect": "Inspect Details"
+  },
+  "cart": {
+    "title": "YOUR SHOPPING BAG",
+    "empty": "Your shopping bag is empty",
+    "checkout": "Proceed to Checkout",
+    "total": "Total Amount"
+  },
+  "checkout": {
+    "title": "SECURE LUXURY CHECKOUT",
+    "delivery_address": "Delivery Address",
+    "select_slot": "Select Delivery Slot",
+    "guest_checkout": "Checkout as Guest",
+    "saved_addresses": "Saved Addresses",
+    "full_name": "Full Name",
+    "address_placeholder": "123 Chocolate Lane, Royal Estate",
+    "pay_now": "Pay with Razorpay",
+    "success_title": "Order Placed Successfully",
+    "verification_pending": "Verifying transaction secure signatures..."
+  },
+  "tracking": {
+    "title": "ORDER JOURNEY TRACKING",
+    "order_status": "Order Status",
+    "date": "Date",
+    "slot": "Delivery Slot"
+  }
+}

@@ -1,0 +1,10 @@
+# Vercel Ignore File
+backend/
+node_modules/
+.git/
+.env*
+!frontend/.env.example
+*.sqlite
+*.log
+scratch/
+images/
