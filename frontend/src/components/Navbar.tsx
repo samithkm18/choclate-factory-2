@@ -81,11 +81,11 @@ export const Navbar: React.FC = () => {
             </svg>
           </div>
         )}
-        <div className="flex flex-col text-left">
-          <span className="font-serif text-sm md:text-lg tracking-[0.18em] md:tracking-[0.25em] text-brand-gold group-hover:text-brand-goldLight transition-colors uppercase font-bold text-gold-metallic leading-tight">
+        <div className="flex flex-col text-left max-w-[140px] xs:max-w-[180px] sm:max-w-none truncate">
+          <span className="font-serif text-xs sm:text-sm md:text-lg tracking-[0.12em] sm:tracking-[0.18em] md:tracking-[0.25em] text-brand-gold group-hover:text-brand-goldLight transition-colors uppercase font-bold text-gold-metallic leading-tight truncate">
             {businessName}
           </span>
-          <span className="text-[8px] md:text-[9px] uppercase tracking-[0.25em] md:tracking-[0.35em] text-zinc-400 font-semibold">
+          <span className="text-[7px] sm:text-[8px] md:text-[9px] uppercase tracking-[0.18em] sm:tracking-[0.25em] md:tracking-[0.35em] text-zinc-400 font-semibold truncate">
             Chocolate Factory
           </span>
         </div>
@@ -230,9 +230,18 @@ export const Navbar: React.FC = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="absolute top-full left-0 w-full bg-brand-panelBg border-b border-brand-gold/20 shadow-2xl overflow-hidden lg:hidden z-[9990]"
+            className="absolute top-full left-0 w-full bg-brand-panelBg border-b border-brand-gold/20 shadow-2xl overflow-y-auto max-h-[calc(100vh-80px)] lg:hidden z-[9990]"
           >
-            <div className="flex flex-col p-6 space-y-3.5 text-xs uppercase font-extrabold tracking-widest text-left">
+            <div className="flex flex-col p-5 space-y-2.5 text-xs uppercase font-extrabold tracking-widest text-left">
+              <Link 
+                to="/" 
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center gap-3 py-3 px-4 rounded-xl hover:bg-white/5 text-zinc-200 hover:text-brand-gold transition-all"
+              >
+                <Compass size={16} />
+                <span>Home</span>
+              </Link>
+
               <Link 
                 to="/shop" 
                 onClick={() => setMobileMenuOpen(false)}
