@@ -2,27 +2,32 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   BarChart3, ShoppingCart, Settings, Layers, Play, Volume2, 
-  Upload, Bell, LogOut, Trash2, Star, Tag, MapPin 
+  Upload, Bell, LogOut, Trash2, Star, MapPin, Briefcase, Send, Eye, MessageSquare
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import AdminReviews from '../../components/admin/AdminReviews';
-import AdminPosters from '../../components/admin/AdminPosters';
-import AdminAbout from '../../components/admin/AdminAbout';
 import SalesAnalytics from '../../components/admin/SalesAnalytics';
 import NotificationsCenter from '../../components/admin/NotificationsCenter';
-import AdminCoupons from '../../components/admin/AdminCoupons';
 import AdminLocations from '../../components/admin/AdminLocations';
+import AdminJobs from '../../components/admin/AdminJobs';
+import AdminOverallReview from '../../components/admin/AdminOverallReview';
+import CustomerMessages from '../../components/admin/CustomerMessages';
 import { getAssetUrl } from '../../config/api';
 
 interface Order {
-  id: number;
-  customer_name: string;
-  customer_email: string;
-  items: { name: string; quantity: number; price: number; variant: string }[];
+  id: number | string;
+  customer_name?: string;
+  customer_email?: string;
+  guest_info?: { name?: string; email?: string; phone?: string } | null;
+  items: { name: string; quantity: number; price: number; variant?: string }[];
   total_amount: number;
-  status: 'pending' | 'preparing' | 'packed' | 'out_for_delivery' | 'delivered' | 'cancelled';
-  delivery_date: string;
-  delivery_slot: string;
+  delivery_charge?: number;
+  expected_delivery_date?: string;
+  cancellation_deadline?: string;
+  payment_method?: string;
+  status: string;
+  delivery_date?: string;
+  delivery_slot?: string;
   address: string;
   payment_status: string;
   created_at: string;
@@ -41,6 +46,11 @@ interface Product {
   category: string;
   video_url: string;
   images: string;
+  is_bestseller?: boolean;
+  delivery_charge?: number;
+  expected_delivery_date?: string;
+  cancellation_deadline?: string;
+  cod_available?: boolean;
 }
 
 interface Analytics {
@@ -57,7 +67,7 @@ export const OwnerDashboard: React.FC = () => {
   const navigate = useNavigate();
 
   // Navigation state
-  const [activeTab, setActiveTab] = useState<'analytics' | 'orders' | 'inventory' | 'posters' | 'reviews' | 'about' | 'notifications' | 'settings' | 'coupons' | 'locations'>('analytics');
+  const [activeTab, setActiveTab] = useState<'analytics' | 'orders' | 'overall_review' | 'inventory' | 'posters' | 'reviews' | 'about' | 'notifications' | 'settings' | 'coupons' | 'locations' | 'jobs' | 'messages'>('analytics');
   
   // Data states
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
@@ -75,6 +85,7 @@ export const OwnerDashboard: React.FC = () => {
   const [pTags, setPTags] = useState('');
   const [pIngredients, setPIngredients] = useState('');
   const [pImageFile, setPImageFile] = useState<File | null>(null);
+  const [pImageUrl, setPImageUrl] = useState('');
   const [pVideoFile, setPVideoFile] = useState<File | null>(null);
   const [pVideoThumbnailFile, setPVideoThumbnailFile] = useState<File | null>(null);
 
@@ -121,6 +132,10 @@ export const OwnerDashboard: React.FC = () => {
   const [pVideoUrl, setPVideoUrl] = useState('');
   const [pVideoThumbnailUrl, setPVideoThumbnailUrl] = useState('');
   const [pIsNew, setPIsNew] = useState(false);
+  const [pIsBestseller, setPIsBestseller] = useState(false);
+  const [pDeliveryCharge, setPDeliveryCharge] = useState('0');
+  const [pExpectedDeliveryDate, setPExpectedDeliveryDate] = useState('3-5 Business Days');
+  const [pCancellationDeadline, setPCancellationDeadline] = useState('Within 24 hours of order placement');
 
   // Specifications
   const [pSpecPackaging, setPSpecPackaging] = useState('');
@@ -446,6 +461,7 @@ export const OwnerDashboard: React.FC = () => {
     // Set preview URLs from database
     const imgArr = Array.isArray(product.images) ? product.images : (product.images && typeof product.images === 'string' && product.images.startsWith('[') ? JSON.parse(product.images) : (product.images ? [product.images] : []));
     const imgPath = imgArr[0] || '';
+    setPImageUrl(imgPath.startsWith('http') ? imgPath : '');
     setImagePreviewUrl(getAssetUrl(imgPath));
     setVideoPreviewUrl(getAssetUrl(product.video_url));
     setThumbPreviewUrl(getAssetUrl(product.video_thumbnail));
@@ -482,6 +498,7 @@ export const OwnerDashboard: React.FC = () => {
     setPIngredients('');
     setPVideoUrl('');
     setPVideoThumbnailUrl('');
+    setPImageUrl('');
     setPCocoa('');
     setPWeight('');
     setPOrigin('');
@@ -543,8 +560,13 @@ export const OwnerDashboard: React.FC = () => {
     formData.append('specifications', JSON.stringify(specsObj));
     formData.append('nutrition', JSON.stringify(nutObj));
     formData.append('is_new', pIsNew ? '1' : '0');
+    formData.append('is_bestseller', pIsBestseller ? '1' : '0');
+    formData.append('delivery_charge', pDeliveryCharge);
+    formData.append('expected_delivery_date', pExpectedDeliveryDate);
+    formData.append('cancellation_deadline', pCancellationDeadline);
 
     if (pImageFile) formData.append('image', pImageFile);
+    if (pImageUrl.trim()) formData.append('image_url', pImageUrl.trim());
     if (pVideoFile) formData.append('video', pVideoFile);
     if (pVideoThumbnailFile) formData.append('video_thumbnail', pVideoThumbnailFile);
 
@@ -789,6 +811,12 @@ export const OwnerDashboard: React.FC = () => {
               <ShoppingCart size={15} /> Manage Orders
             </button>
             <button 
+              onClick={() => setActiveTab('overall_review')}
+              className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg transition-colors cursor-pointer ${activeTab === 'overall_review' ? 'bg-brand-gold text-brand-maroonDark font-bold' : 'hover:bg-white/5 text-zinc-400 hover:text-white'}`}
+            >
+              <Eye size={15} /> Overall Review
+            </button>
+            <button 
               onClick={() => setActiveTab('inventory')}
               className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg transition-colors ${activeTab === 'inventory' ? 'bg-brand-gold text-brand-maroonDark' : 'hover:bg-white/5 text-zinc-400 hover:text-white'}`}
             >
@@ -801,38 +829,26 @@ export const OwnerDashboard: React.FC = () => {
               <Star size={15} /> Review Queue
             </button>
             <button 
-              onClick={() => setActiveTab('posters')}
-              className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg transition-colors ${activeTab === 'posters' ? 'bg-brand-gold text-brand-maroonDark' : 'hover:bg-white/5 text-zinc-400 hover:text-white'}`}
+              onClick={() => setActiveTab('jobs')}
+              className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg transition-colors cursor-pointer ${activeTab === 'jobs' ? 'bg-brand-gold text-brand-maroonDark font-bold' : 'hover:bg-white/5 text-zinc-400 hover:text-white'}`}
             >
-              <Layers size={15} /> Flyer Gallery
-            </button>
-            <button 
-              onClick={() => setActiveTab('about')}
-              className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg transition-colors ${activeTab === 'about' ? 'bg-brand-gold text-brand-maroonDark' : 'hover:bg-white/5 text-zinc-400 hover:text-white'}`}
-            >
-              <Layers size={15} /> Heritage Page
+              <Briefcase size={15} /> Job Offerings
             </button>
             <button 
               onClick={() => setActiveTab('notifications')}
-              className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg transition-colors ${activeTab === 'notifications' ? 'bg-brand-gold text-brand-maroonDark' : 'hover:bg-white/5 text-zinc-400 hover:text-white'}`}
+              className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg transition-colors cursor-pointer ${activeTab === 'notifications' ? 'bg-brand-gold text-brand-maroonDark font-bold' : 'hover:bg-white/5 text-zinc-400 hover:text-white'}`}
             >
               <Bell size={15} /> Notifications
             </button>
             <button 
               onClick={() => setActiveTab('settings')}
-              className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg transition-colors ${activeTab === 'settings' ? 'bg-brand-gold text-brand-maroonDark' : 'hover:bg-white/5 text-zinc-400 hover:text-white'}`}
+              className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg transition-colors cursor-pointer ${activeTab === 'settings' ? 'bg-brand-gold text-brand-maroonDark font-bold' : 'hover:bg-white/5 text-zinc-400 hover:text-white'}`}
             >
               <Settings size={15} /> Sound Settings
             </button>
             <button 
-              onClick={() => setActiveTab('coupons')}
-              className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg transition-colors ${activeTab === 'coupons' ? 'bg-brand-gold text-brand-maroonDark' : 'hover:bg-white/5 text-zinc-400 hover:text-white'}`}
-            >
-              <Tag size={15} /> Promo Codes
-            </button>
-            <button 
               onClick={() => setActiveTab('locations')}
-              className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg transition-colors ${activeTab === 'locations' ? 'bg-brand-gold text-brand-maroonDark' : 'hover:bg-white/5 text-zinc-400 hover:text-white'}`}
+              className={`flex items-center gap-2.5 px-4 py-2.5 rounded-lg transition-colors cursor-pointer ${activeTab === 'locations' ? 'bg-brand-gold text-brand-maroonDark font-bold' : 'hover:bg-white/5 text-zinc-400 hover:text-white'}`}
             >
               <MapPin size={15} /> Map Locations
             </button>
@@ -884,87 +900,118 @@ export const OwnerDashboard: React.FC = () => {
                         <th className="py-3 text-right">Total</th>
                         <th className="py-3 text-center">Payment Verification</th>
                         <th className="py-3 text-center">Status</th>
+                        <th className="py-3 text-center">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {orders.map(o => (
-                        <tr key={o.id} className="border-b border-brand-maroon/5 hover:bg-white/5 transition-colors">
-                          <td className="py-4 font-bold text-brand-gold">#{o.id}</td>
-                          <td className="py-4 text-left">
-                            <p className="font-semibold text-white leading-tight">{o.customer_name}</p>
-                            <p className="text-[9px] text-zinc-500 break-all">{o.customer_email}</p>
-                          </td>
-                          <td className="py-4 max-w-xs text-zinc-400 leading-relaxed text-left" title={o.address}>
-                            <p className="truncate">{o.address}</p>
-                            {o.coordinates && o.coordinates.lat && o.coordinates.lng && (
-                              <a
-                                href={`https://www.google.com/maps/search/?api=1&query=${o.coordinates.lat},${o.coordinates.lng}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-[8px] text-brand-gold hover:underline font-mono uppercase tracking-widest block mt-1"
-                              >
-                                View Location Pin Map 🗺️
-                              </a>
-                            )}
-                          </td>
-                          <td className="py-4 text-right font-bold text-white">₹{o.total_amount.toLocaleString()}</td>
-                          <td className="py-4 text-center">
-                            {o.payment_status === 'pending_confirmation' ? (
-                              <div className="flex flex-col items-center gap-1.5">
-                                <span className="text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider font-mono">
-                                  UTR: {o.transaction_ref}
-                                </span>
-                                <div className="flex gap-1 text-[8px] uppercase tracking-wider font-bold">
-                                  <button
-                                    onClick={() => handleConfirmPayment(o.id)}
-                                    className="px-2 py-1 bg-emerald-500 hover:bg-emerald-600 text-zinc-950 rounded transition-colors cursor-pointer"
-                                  >
-                                    Approve
-                                  </button>
-                                  <button
-                                    onClick={() => handleRejectPayment(o.id)}
-                                    className="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded transition-colors cursor-pointer"
-                                  >
-                                    Decline
-                                  </button>
+                      {orders.map(o => {
+                        const itemsStr = o.items ? o.items.map((i: any) => `${i.name} (${i.quantity}x)`).join(', ') : 'Chocolates';
+                        const phoneMatch = o.address ? o.address.match(/(?:Phone|phone):\s*([+\d\s-]+)/) : null;
+                        const phoneDisplay = o.customer_phone || o.guest_info?.phone || (phoneMatch ? phoneMatch[1].trim() : '') || 'N/A';
+                        const phoneClean = phoneDisplay !== 'N/A' ? phoneDisplay.replace(/[^\d+]/g, '') : '';
+
+                        const handleSendWhatsApp = () => {
+                          const msg = `Hello ${o.customer_name || 'Valued Customer'},\n\nYour order #${o.id} at Mani's Kote Chocolate Factory is confirmed!\n\n📦 *Order Summary:*\n- Items: ${itemsStr}\n- Total Amount: ₹${o.total_amount}\n- Delivery Charge: ${o.delivery_charge ? '₹' + o.delivery_charge : 'FREE'}\n- Payment Method: ${(o.payment_method || 'COD').toUpperCase()}\n- Expected Delivery: ${o.expected_delivery_date || '3-5 Business Days'}\n\nThank you for choosing Mani's Kote!`;
+                          window.open(`https://wa.me/${phoneClean}?text=${encodeURIComponent(msg)}`, '_blank');
+                        };
+
+                        return (
+                          <tr key={o.id} className="border-b border-brand-maroon/5 hover:bg-white/5 transition-colors">
+                            <td className="py-4 font-bold text-brand-gold">#{o.id}</td>
+                            <td className="py-4 text-left">
+                              <p className="font-semibold text-white leading-tight">{o.customer_name || 'Valued Customer'}</p>
+                              <p className="text-[9px] text-zinc-400 break-all">{o.customer_email || ''}</p>
+                              <p className="text-[10px] text-brand-gold font-mono font-semibold">{phoneDisplay}</p>
+                            </td>
+                            <td className="py-4 max-w-xs text-zinc-400 leading-relaxed text-left" title={o.address}>
+                              <p className="truncate">{o.address}</p>
+                              {o.coordinates && o.coordinates.lat && o.coordinates.lng && (
+                                <a
+                                  href={`https://www.google.com/maps/search/?api=1&query=${o.coordinates.lat},${o.coordinates.lng}`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="text-[8px] text-brand-gold hover:underline font-mono uppercase tracking-widest block mt-1"
+                                >
+                                  View Location Pin Map 🗺️
+                                </a>
+                              )}
+                            </td>
+                            <td className="py-4 text-right font-bold text-white">₹{o.total_amount.toLocaleString()}</td>
+                            <td className="py-4 text-center">
+                              {o.payment_status === 'pending_confirmation' ? (
+                                <div className="flex flex-col items-center gap-1.5">
+                                  <span className="text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider font-mono">
+                                    UTR: {o.transaction_ref}
+                                  </span>
+                                  <div className="flex gap-1 text-[8px] uppercase tracking-wider font-bold">
+                                    <button
+                                      onClick={() => handleConfirmPayment(o.id)}
+                                      className="px-2 py-1 bg-emerald-500 hover:bg-emerald-600 text-zinc-950 rounded transition-colors cursor-pointer"
+                                    >
+                                      Approve
+                                    </button>
+                                    <button
+                                      onClick={() => handleRejectPayment(o.id)}
+                                      className="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded transition-colors cursor-pointer"
+                                    >
+                                      Decline
+                                    </button>
+                                  </div>
                                 </div>
-                              </div>
-                            ) : (
-                              <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
-                                o.payment_status === 'paid' 
-                                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
-                                  : o.payment_status === 'rejected'
-                                  ? 'bg-red-500/10 text-red-400 border border-red-500/20'
-                                  : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'
-                              }`}>
-                                {o.payment_status === 'paid' ? 'Paid (Verified)' : o.payment_status === 'rejected' ? 'Rejected' : o.payment_status}
-                              </span>
-                            )}
-                            {o.rejection_reason && (
-                              <p className="text-[8px] text-red-400 mt-1 italic leading-tight">Reason: {o.rejection_reason}</p>
-                            )}
-                          </td>
-                          <td className="py-4 text-center">
-                            <select
-                              value={o.status}
-                              onChange={e => handleUpdateStatus(o.id, e.target.value)}
-                              className="bg-brand-darkBg text-zinc-300 text-[11px] font-semibold border border-brand-gold/30 rounded px-2.5 py-1.5 focus:border-brand-gold outline-none cursor-pointer"
-                            >
-                              <option value="pending">Pending</option>
-                              <option value="preparing">Preparing</option>
-                              <option value="packed">Packed</option>
-                              <option value="out_for_delivery">Out for Delivery</option>
-                              <option value="delivered">Delivered</option>
-                              <option value="cancelled">Cancelled</option>
-                            </select>
-                          </td>
-                        </tr>
-                      ))}
+                              ) : (
+                                <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                                  o.payment_status === 'paid' 
+                                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' 
+                                    : o.payment_status === 'rejected'
+                                    ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                                    : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/20'
+                                }`}>
+                                  {o.payment_status === 'paid' ? 'Paid (Verified)' : o.payment_status === 'rejected' ? 'Rejected' : o.payment_status}
+                                </span>
+                              )}
+                              {o.rejection_reason && (
+                                <p className="text-[8px] text-red-400 mt-1 italic leading-tight">Reason: {o.rejection_reason}</p>
+                              )}
+                            </td>
+                            <td className="py-4 text-center">
+                              <select
+                                value={o.status}
+                                onChange={e => handleUpdateStatus(o.id, e.target.value)}
+                                className="bg-brand-darkBg text-zinc-300 text-[11px] font-semibold border border-brand-gold/30 rounded px-2.5 py-1.5 focus:border-brand-gold outline-none cursor-pointer"
+                              >
+                                <option value="Packing">Packing</option>
+                                <option value="Out for Delivery">Out for Delivery</option>
+                                <option value="Delivered">Delivered</option>
+                                <option value="pending">Pending</option>
+                                <option value="preparing">Preparing</option>
+                                <option value="Cancelled">Cancelled</option>
+                                <option value="cancelled">Cancelled</option>
+                              </select>
+                            </td>
+                            <td className="py-4 text-center">
+                              <button
+                                onClick={handleSendWhatsApp}
+                                className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-[9px] font-extrabold uppercase tracking-wider rounded-lg transition-all shadow cursor-pointer flex items-center justify-center gap-1 mx-auto"
+                                title="Send WhatsApp Confirmation to Customer"
+                              >
+                                <Send size={10} /> Send WhatsApp
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* TAB 2B: Overall Review Section */}
+        {activeTab === 'overall_review' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <AdminOverallReview token={ownerToken || ''} />
           </div>
         )}
 
@@ -1242,42 +1289,90 @@ export const OwnerDashboard: React.FC = () => {
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] text-zinc-400 uppercase tracking-wider mb-1">Price ($)</label>
+                    <label className="block text-[10px] text-zinc-400 uppercase tracking-wider mb-1">Price (₹)</label>
                     <input 
                       type="number" 
-                      step="0.01"
+                      step="1"
                       value={pPrice}
                       onChange={e => setPPrice(e.target.value)}
                       required
-                      placeholder="25.00"
+                      placeholder="500"
                       className="w-full bg-brand-darkBg border border-brand-gold/20 focus:border-brand-gold rounded-lg px-3 py-2 text-xs text-white outline-none transition-colors"
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] text-zinc-400 uppercase tracking-wider mb-1">Stock Level</label>
+                    <label className="block text-[10px] text-zinc-400 uppercase tracking-wider mb-1">Stock Quantity</label>
                     <input 
                       type="number" 
                       value={pStock}
                       onChange={e => setPStock(e.target.value)}
                       required
-                      placeholder="100"
+                      placeholder="50"
                       className="w-full bg-brand-darkBg border border-brand-gold/20 focus:border-brand-gold rounded-lg px-3 py-2 text-xs text-white outline-none transition-colors"
                     />
                   </div>
                 </div>
 
-                {/* New Arrival Ribbon Selector */}
-                <div className="flex items-center gap-2.5 bg-brand-darkBg/40 border border-brand-gold/15 rounded-xl p-3.5">
-                  <input 
-                    id="new-arrival-checkbox"
-                    type="checkbox" 
-                    checked={pIsNew}
-                    onChange={e => setPIsNew(e.target.checked)}
-                    className="w-4 h-4 accent-brand-gold cursor-pointer rounded"
-                  />
-                  <label htmlFor="new-arrival-checkbox" className="text-[10px] text-zinc-300 uppercase tracking-widest cursor-pointer font-bold select-none">
-                    ✦ Mark as New Arrival (adds diagonal crimson ribbon)
-                  </label>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[9px] text-zinc-400 uppercase tracking-wider mb-1">Delivery Charge (₹)</label>
+                    <input 
+                      type="number" 
+                      value={pDeliveryCharge}
+                      onChange={e => setPDeliveryCharge(e.target.value)}
+                      placeholder="0 for FREE"
+                      className="w-full bg-brand-darkBg border border-brand-gold/20 focus:border-brand-gold rounded-lg px-3 py-2 text-xs text-white outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] text-zinc-400 uppercase tracking-wider mb-1">Expected Delivery Date</label>
+                    <input 
+                      type="text" 
+                      value={pExpectedDeliveryDate}
+                      onChange={e => setPExpectedDeliveryDate(e.target.value)}
+                      placeholder="3-5 Business Days"
+                      className="w-full bg-brand-darkBg border border-brand-gold/20 focus:border-brand-gold rounded-lg px-3 py-2 text-xs text-white outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] text-zinc-400 uppercase tracking-wider mb-1">Cancellation Deadline</label>
+                    <input 
+                      type="text" 
+                      value={pCancellationDeadline}
+                      onChange={e => setPCancellationDeadline(e.target.value)}
+                      placeholder="Within 24 hours of order"
+                      className="w-full bg-brand-darkBg border border-brand-gold/20 focus:border-brand-gold rounded-lg px-3 py-2 text-xs text-white outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Bestseller & New Arrival Checkboxes */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2.5 bg-brand-darkBg/40 border border-brand-gold/15 rounded-xl p-3">
+                    <input 
+                      id="bestseller-checkbox"
+                      type="checkbox" 
+                      checked={pIsBestseller}
+                      onChange={e => setPIsBestseller(e.target.checked)}
+                      className="w-4 h-4 accent-brand-gold cursor-pointer rounded"
+                    />
+                    <label htmlFor="bestseller-checkbox" className="text-[10px] text-brand-gold uppercase tracking-wider cursor-pointer font-extrabold select-none">
+                      ★ Mark as BESTSELLER Badge
+                    </label>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 bg-brand-darkBg/40 border border-brand-gold/15 rounded-xl p-3">
+                    <input 
+                      id="new-arrival-checkbox"
+                      type="checkbox" 
+                      checked={pIsNew}
+                      onChange={e => setPIsNew(e.target.checked)}
+                      className="w-4 h-4 accent-brand-gold cursor-pointer rounded"
+                    />
+                    <label htmlFor="new-arrival-checkbox" className="text-[10px] text-zinc-300 uppercase tracking-wider cursor-pointer font-bold select-none">
+                      ✦ Mark as New Arrival
+                    </label>
+                  </div>
                 </div>
                 
                 {/* MEDIA UPLOADS / URL INPUTS */}
@@ -1362,7 +1457,27 @@ export const OwnerDashboard: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* 2. Hero Intro Video File Drag & Drop Zone */}
+                  {/* 1b. Product Image URL (alternative to file upload) */}
+                  <div className="space-y-1.5">
+                    <label className="block text-[8px] text-zinc-500 uppercase tracking-widest font-bold">
+                      Or Set Image via Direct URL
+                    </label>
+                    <input
+                      type="url"
+                      value={pImageUrl}
+                      onChange={e => {
+                        setPImageUrl(e.target.value);
+                        if (e.target.value.trim()) {
+                          setImagePreviewUrl(e.target.value.trim());
+                        }
+                      }}
+                      placeholder="https://example.com/chocolate-image.jpg"
+                      className="w-full bg-brand-darkBg border border-brand-gold/15 focus:border-brand-gold/50 rounded-lg px-3 py-2 text-[10px] text-white outline-none transition-colors font-mono"
+                    />
+                    {pImageUrl.trim() && (
+                      <p className="text-[8px] text-emerald-400 uppercase tracking-wider">✓ Image URL set — will override file upload</p>
+                    )}
+                  </div>
                   <div className="space-y-1.5">
                     <label className="block text-[8px] text-zinc-500 uppercase tracking-widest font-bold">
                       Chocolate Intro Video
@@ -1549,6 +1664,13 @@ export const OwnerDashboard: React.FC = () => {
               </form>
             </div>
             
+          </div>
+        )}
+
+        {/* TAB 4: Job Offerings Management */}
+        {activeTab === 'jobs' && (
+          <div className="animate-in fade-in duration-300">
+            <AdminJobs token={ownerToken || ''} />
           </div>
         )}
 
@@ -1799,22 +1921,6 @@ export const OwnerDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* TAB 6: Flyer Gallery Posters */}
-        {activeTab === 'posters' && (
-          <div className="space-y-6 animate-in fade-in duration-300">
-            <h2 className="text-2xl font-serif text-white">PROMOTION POSTERS GALLERY</h2>
-            <AdminPosters token={ownerToken || ''} role="owner" />
-          </div>
-        )}
-
-        {/* TAB 7: Heritage Page */}
-        {activeTab === 'about' && (
-          <div className="space-y-6 animate-in fade-in duration-300">
-            <h2 className="text-2xl font-serif text-white">BRAND HERITAGE STORY</h2>
-            <AdminAbout token={ownerToken || ''} role="owner" />
-          </div>
-        )}
-
         {/* TAB 8: Notifications Center */}
         {activeTab === 'notifications' && (
           <div className="space-y-6 animate-in fade-in duration-300">
@@ -1823,19 +1929,27 @@ export const OwnerDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* TAB: Promo Codes */}
-        {activeTab === 'coupons' && (
-          <div className="space-y-6 animate-in fade-in duration-300">
-            <h2 className="text-2xl font-serif text-white">PROMOTION CODE MANAGER</h2>
-            <AdminCoupons token={ownerToken || ''} role="owner" />
-          </div>
-        )}
-
         {/* TAB: Map Locations */}
         {activeTab === 'locations' && (
           <div className="space-y-6 animate-in fade-in duration-300">
             <h2 className="text-2xl font-serif text-white">STORE LOCATIONS</h2>
             <AdminLocations token={ownerToken || ''} role="owner" />
+          </div>
+        )}
+
+        {/* TAB: Job Offerings */}
+        {activeTab === 'jobs' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <h2 className="text-2xl font-serif text-white">JOB OFFERINGS</h2>
+            <AdminJobs token={ownerToken || ''} />
+          </div>
+        )}
+
+        {/* TAB: Customer Messages */}
+        {activeTab === 'messages' && (
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <h2 className="text-2xl font-serif text-white">CUSTOMER MESSAGES</h2>
+            <CustomerMessages token={ownerToken || ''} role="owner" />
           </div>
         )}
 

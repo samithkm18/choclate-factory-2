@@ -29,6 +29,8 @@ import OrderTrack from './pages/OrderTrack';
 import UserLogin from './pages/UserLogin';
 import UserRegister from './pages/UserRegister';
 import LoginSuccess from './pages/LoginSuccess';
+import MyOrders from './pages/MyOrders';
+import JobOpenings from './pages/JobOpenings';
 
 // Import Admin/Owner pages
 import OwnerLogin from './pages/owner/OwnerLogin';
@@ -82,7 +84,7 @@ const UserLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-brand-darkBg text-white selection:bg-brand-gold selection:text-brand-maroonDark relative">
+    <div className="flex flex-col min-h-screen bg-brand-darkBg text-white selection:bg-brand-gold selection:text-brand-maroonDark relative overflow-x-hidden">
       {/* Dynamic Announcement Banner at the very top */}
       {banner && (
         <div className="w-full bg-brand-maroon text-brand-goldLight text-[10px] uppercase font-bold tracking-[0.2em] py-2 px-4 text-center border-b border-brand-gold/15 z-[9905] relative mt-0">
@@ -124,32 +126,35 @@ const RootSelector: React.FC = () => {
       {showIntro && isHomepage && (
         <LogoIntro onComplete={() => setShowIntro(false)} />
       )}
-    <Routes>
-      {/* 1. Public storefront User Portal */}
-      <Route path="/" element={<UserLayout><Home /></UserLayout>} />
-      <Route path="/about" element={<UserLayout><About /></UserLayout>} />
-      <Route path="/catalog" element={<UserLayout><Catalog /></UserLayout>} />
-      <Route path="/builder" element={<UserLayout><BoxBuilder /></UserLayout>} />
-      <Route path="/product/:slug" element={<UserLayout><ProductDetail /></UserLayout>} />
-      <Route path="/cart" element={<UserLayout><Cart /></UserLayout>} />
-      <Route path="/checkout" element={<UserLayout><Checkout /></UserLayout>} />
-      <Route path="/account" element={<UserLayout><Account /></UserLayout>} />
-      <Route path="/track/:id" element={<UserLayout><OrderTrack /></UserLayout>} />
-      <Route path="/login" element={<UserLayout><UserLogin /></UserLayout>} />
-      <Route path="/register" element={<UserLayout><UserRegister /></UserLayout>} />
-      <Route path="/login-success" element={<UserLayout><LoginSuccess /></UserLayout>} />
+      <Routes>
+        {/* 1. Public storefront User Portal */}
+        <Route path="/" element={<UserLayout><Home /></UserLayout>} />
+        <Route path="/shop" element={<UserLayout><Catalog /></UserLayout>} />
+        <Route path="/about" element={<UserLayout><About /></UserLayout>} />
+        <Route path="/catalog" element={<UserLayout><Catalog /></UserLayout>} />
+        <Route path="/builder" element={<UserLayout><BoxBuilder /></UserLayout>} />
+        <Route path="/product/:slug" element={<UserLayout><ProductDetail /></UserLayout>} />
+        <Route path="/cart" element={<UserLayout><Cart /></UserLayout>} />
+        <Route path="/checkout" element={<UserLayout><Checkout /></UserLayout>} />
+        <Route path="/my-orders" element={<UserLayout><MyOrders /></UserLayout>} />
+        <Route path="/jobs" element={<UserLayout><JobOpenings /></UserLayout>} />
+        <Route path="/account" element={<UserLayout><Account /></UserLayout>} />
+        <Route path="/track/:id" element={<UserLayout><OrderTrack /></UserLayout>} />
+        <Route path="/login" element={<UserLayout><UserLogin /></UserLayout>} />
+        <Route path="/register" element={<UserLayout><UserRegister /></UserLayout>} />
+        <Route path="/login-success" element={<UserLayout><LoginSuccess /></UserLayout>} />
 
-      {/* 2. Isolated Owner Portal */}
-      <Route path="/owner" element={<OwnerLogin />} />
-      <Route path="/owner/login" element={<OwnerLogin />} />
-      <Route path="/owner/dashboard" element={<OwnerDashboard />} />
+        {/* 2. Isolated Owner Portal */}
+        <Route path="/owner" element={<OwnerLogin />} />
+        <Route path="/owner/login" element={<OwnerLogin />} />
+        <Route path="/owner/dashboard" element={<OwnerDashboard />} />
 
-      {/* 3. Isolated MWC Maintenance Portal */}
-      <Route path="/mwc" element={<MwcLogin />} />
-      <Route path="/mwc/login" element={<MwcLogin />} />
-      <Route path="/mwc/dashboard" element={<MwcDashboard />} />
-    </Routes>
-  </>
+        {/* 3. Isolated MWC Maintenance Portal */}
+        <Route path="/mwc" element={<MwcLogin />} />
+        <Route path="/mwc/login" element={<MwcLogin />} />
+        <Route path="/mwc/dashboard" element={<MwcDashboard />} />
+      </Routes>
+    </>
   );
 };
 

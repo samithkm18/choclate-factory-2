@@ -34,6 +34,11 @@ const ProductSchema = new mongoose.Schema({
     protein: { type: String }
   },
   is_new: { type: Boolean, default: false },
+  is_bestseller: { type: Boolean, default: false },
+  delivery_charge: { type: Number, default: 0 },
+  expected_delivery_date: { type: String, default: '3-5 Business Days' },
+  cancellation_deadline: { type: String, default: 'Within 24 hours of order placement' },
+  cod_available: { type: Boolean, default: true },
   created_at: { type: Date, default: Date.now }
 });
 

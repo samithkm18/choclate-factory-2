@@ -2,6 +2,7 @@ import React, { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useTranslation } from 'react-i18next';
 import ExplorableStudio from '../components/ExplorableStudio';
 import ChocolateShop from '../components/ChocolateShop';
 import CircularShowcase from '../components/CircularShowcase';
@@ -26,6 +27,7 @@ export const Home: React.FC = () => {
   const [email, setEmail] = useState('');
   const [subscribed, setSubscribed] = useState(false);
   const [heroVideoLoaded, setHeroVideoLoaded] = useState(false);
+  const { t } = useTranslation();
   
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -64,7 +66,6 @@ export const Home: React.FC = () => {
       }
     });
 
-    // Fade out hero content smoothly on scroll
     tl.to('#hero-content-wrapper', {
       opacity: 0,
       y: -100,
@@ -102,14 +103,14 @@ export const Home: React.FC = () => {
         videoRef.current.pause();
         setIsPlaying(false);
       }
-    }, 500); // 500ms debounce
+    }, 500);
   };
 
   const handleTouch = () => {
     if (touchTimeoutRef.current) return;
     touchTimeoutRef.current = setTimeout(() => {
       touchTimeoutRef.current = null;
-    }, 300); // 300ms touch tap debounce
+    }, 300);
 
     if (videoRef.current) {
       if (isPlaying) {
@@ -137,9 +138,9 @@ export const Home: React.FC = () => {
   };
 
   return (
-    <div className="w-full bg-brand-darkBg text-white relative min-h-screen">
+    <div className="w-full bg-brand-darkBg text-white relative min-h-screen overflow-x-hidden">
       
-      {/* Youtube Cinematic Background Loop (Fixed viewport background) */}
+      {/* Youtube Cinematic Background Loop */}
       <div 
         className="fixed inset-0 w-screen h-screen z-0 overflow-hidden pointer-events-none select-none transition-all duration-700 ease-in-out"
         style={{ opacity: 'var(--bg-video-opacity)' }}
@@ -163,7 +164,6 @@ export const Home: React.FC = () => {
           allow="autoplay; encrypted-media"
           title="Cinematic Chocolate Background"
         />
-        {/* Ambient overlays to protect contrast */}
         <div 
           className="absolute inset-0 z-10 transition-all duration-700 ease-in-out" 
           style={{ backgroundImage: 'var(--bg-video-overlay)' }}
@@ -175,7 +175,7 @@ export const Home: React.FC = () => {
       </div>
 
       {/* Foreground Content Wrapper */}
-      <div className="relative z-10 w-full bg-transparent">
+      <div className="relative z-10 w-full bg-transparent overflow-x-hidden">
         
         {/* CINEMATIC HERO & SHOWCASE ENVIRONMENT */}
         <div id="cinematic-container" className="relative w-full bg-transparent overflow-hidden">
@@ -183,7 +183,7 @@ export const Home: React.FC = () => {
         {/* 1. CINEMATIC FULLSCREEN HERO SCENE OVERLAY */}
         <section 
           id="hero-overlay" 
-          className="min-h-screen w-full relative flex items-center justify-center px-6 md:px-12 py-32 md:py-40 select-none z-10 bg-transparent overflow-hidden"
+          className="min-h-screen w-full relative flex items-center justify-center px-4 md:px-12 py-24 md:py-40 select-none z-10 bg-transparent overflow-hidden"
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
           onTouchStart={handleTouch}
@@ -206,7 +206,6 @@ export const Home: React.FC = () => {
               onCanPlay={() => setHeroVideoLoaded(true)}
               onEnded={() => setIsPlaying(false)}
             />
-            {/* Cinematic dark scrim gradients to maximize contrast */}
             <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A]/40 to-[#0A0A0A]/70 z-10" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,0,0,0)_20%,#0A0A0A_85%)] z-10" />
           </div>
@@ -214,51 +213,43 @@ export const Home: React.FC = () => {
           {/* Centered Editorial brand content */}
           <div 
             id="hero-content-wrapper" 
-            className="relative z-20 text-center max-w-4xl px-4 space-y-6 md:space-y-8 pointer-events-auto"
+            className="relative z-20 text-center max-w-4xl px-2 sm:px-4 space-y-6 md:space-y-8 pointer-events-auto"
           >
-            {/* Elegant sparkle stars wrapper */}
-            <div className="absolute -top-10 -left-10 w-full h-full pointer-events-none">
-              <div className="sparkle-star top-[15%] left-[20%] w-3 h-3" style={{ animationDelay: '0.1s', animationDuration: '2s' }} />
-              <div className="sparkle-star top-[45%] left-[90%] w-4 h-4" style={{ animationDelay: '0.6s', animationDuration: '2.5s' }} />
-              <div className="sparkle-star top-[75%] left-[40%] w-3 h-3" style={{ animationDelay: '1.2s', animationDuration: '1.8s' }} />
-            </div>
-
-            <div className="space-y-4">
+            <div className="space-y-3 md:space-y-4">
               <motion.span 
-                initial={{ opacity: 0, letterSpacing: '0.1em' }}
-                animate={{ opacity: 1, letterSpacing: '0.42em' }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 transition={{ duration: 1.5 }}
-                className="text-[10px] md:text-xs text-brand-gold uppercase font-extrabold block tracking-[0.42em] metallic-gold-shimmer"
+                className="text-[10px] md:text-xs text-brand-gold uppercase font-extrabold block tracking-[0.25em] md:tracking-[0.42em] metallic-gold-shimmer"
               >
-                ✦ Mani's Private Reserve ✦
+                {t('home.hero_tag')}
               </motion.span>
               
               <motion.h1 
                 initial={{ opacity: 0, y: 35 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 1.2, delay: 0.15 }}
-                className="text-4xl md:text-7xl font-serif leading-tight font-extrabold uppercase tracking-widest text-white"
+                className="text-3xl sm:text-5xl md:text-7xl font-serif leading-tight font-extrabold uppercase tracking-widest text-white"
               >
-                ✦ MANIS <br />
                 <span className="metallic-gold-shimmer text-gold-metallic">KOTE FACTORY</span>
               </motion.h1>
             </div>
 
             {/* Horizontal Gold Details list */}
-            <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2.5 border-t border-b border-brand-gold/15 py-5 max-w-2xl mx-auto">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 md:gap-x-6 gap-y-2 border-t border-b border-brand-gold/15 py-4 md:py-5 max-w-2xl mx-auto">
               {[
-                "Artisanal Excellence",
-                "Since 1985",
-                "Premium Craft",
-                "Heritage",
-                "Innovation"
+                t('home.bullets.artisanal'),
+                t('home.bullets.since'),
+                t('home.bullets.craft'),
+                t('home.bullets.heritage'),
+                t('home.bullets.innovation')
               ].map((bullet, idx) => (
                 <motion.div 
                   key={idx}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.3 + idx * 0.15 }}
-                  className="flex items-center gap-1.5 text-zinc-200 font-serif text-[10px] md:text-xs uppercase tracking-wider"
+                  transition={{ duration: 0.8, delay: 0.3 + idx * 0.1 }}
+                  className="flex items-center gap-1 text-zinc-200 font-serif text-[9px] md:text-xs uppercase tracking-wider"
                 >
                   <span className="text-brand-gold">✦</span>
                   <span className="hover:text-brand-gold transition-colors duration-300">{bullet}</span>
@@ -270,9 +261,9 @@ export const Home: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 1.5, delay: 1.1 }}
-              className="text-zinc-300 text-xs md:text-sm uppercase tracking-[0.2em] font-semibold leading-relaxed max-w-xl mx-auto"
+              className="text-zinc-300 text-xs md:text-sm uppercase tracking-[0.15em] md:tracking-[0.2em] font-semibold leading-relaxed max-w-xl mx-auto px-2"
             >
-              Single-origin Venezuelan seeds, micro-refined textures, and edible 24k gold leaf. A cinematic symphony of gourmet alchemy.
+              {t('home.hero_desc')}
             </motion.p>
             
             <motion.div
@@ -286,9 +277,9 @@ export const Home: React.FC = () => {
                   const element = document.getElementById('showcase-section');
                   if (element) element.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="px-10 py-4.5 bg-brand-gold hover:bg-brand-goldDark text-brand-maroonDark font-extrabold text-[10px] uppercase tracking-widest rounded-xl transition-all cursor-pointer shadow-lg hover:shadow-brand-gold/15 hover:scale-105 transform duration-300"
+                className="px-8 md:px-10 py-3.5 md:py-4.5 bg-brand-gold hover:bg-brand-goldDark text-brand-maroonDark font-extrabold text-[10px] uppercase tracking-widest rounded-xl transition-all cursor-pointer shadow-lg hover:scale-105 transform duration-300"
               >
-                Explore Showcase
+                {t('home.explore_btn')}
               </button>
             </motion.div>
           </div>
@@ -296,13 +287,13 @@ export const Home: React.FC = () => {
 
         {/* Scroll Down Indicator */}
         <div 
-          className="absolute bottom-12 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-2 text-zinc-500 text-[9px] tracking-[0.25em] uppercase font-bold cursor-pointer hover:text-brand-gold transition-colors z-20"
+          className="absolute bottom-8 md:bottom-12 left-1/2 transform -translate-x-1/2 flex flex-col items-center gap-2 text-zinc-500 text-[9px] tracking-[0.25em] uppercase font-bold cursor-pointer hover:text-brand-gold transition-colors z-20"
           onClick={() => {
             const element = document.getElementById('showcase-section');
             if (element) element.scrollIntoView({ behavior: 'smooth' });
           }}
         >
-          <span>Scroll To Enter</span>
+          <span>{t('home.scroll_enter')}</span>
           <div className="w-1.5 h-7 bg-zinc-900 rounded-full overflow-hidden border border-white/5">
             <div className="w-full h-full bg-brand-gold animate-bounce" />
           </div>
@@ -325,20 +316,20 @@ export const Home: React.FC = () => {
       <ExplorableStudio />
 
       {/* 4. CHOCOLATE COLLECTION SHOP */}
-      <section id="shop-section" className="py-24 px-6 md:px-12 bg-transparent border-t border-brand-maroon/15">
+      <section id="shop-section" className="py-16 md:py-24 px-4 md:px-12 bg-transparent border-t border-brand-maroon/15">
         <div className="max-w-7xl mx-auto">
           <ChocolateShop />
         </div>
       </section>
 
       {/* 5. NEWSLETTER SIGNUP BANNER */}
-      <section className="py-20 px-6 md:px-12 bg-transparent border-t border-brand-maroon/20">
-        <div className="max-w-4xl mx-auto glass-panel p-8 md:p-12 rounded-3xl text-center space-y-6 border border-brand-gold/10 relative overflow-hidden">
+      <section className="py-16 md:py-20 px-4 md:px-12 bg-transparent border-t border-brand-maroon/20">
+        <div className="max-w-4xl mx-auto glass-panel p-6 sm:p-8 md:p-12 rounded-3xl text-center space-y-6 border border-brand-gold/10 relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(212,175,55,0.06)_0%,rgba(0,0,0,0)_50%)] pointer-events-none" />
           
-          <h3 className="text-2xl md:text-4xl font-serif text-brand-goldLight">JOIN THE CHOCOLATE CLUB</h3>
+          <h3 className="text-xl sm:text-2xl md:text-4xl font-serif text-brand-goldLight uppercase">{t('home.newsletter_title')}</h3>
           <p className="text-xs md:text-sm text-zinc-400 max-w-md mx-auto leading-relaxed">
-            Subscribe to receive exclusive access to private reserve batches, new arrival spotlights, and custom chocolate tastings.
+            {t('home.newsletter_desc')}
           </p>
 
           {subscribed ? (
@@ -347,7 +338,7 @@ export const Home: React.FC = () => {
               animate={{ scale: 1, opacity: 1 }}
               className="text-emerald-400 font-semibold text-xs tracking-wider"
             >
-              ✓ Thank you. Your luxury reserve invite has been registered.
+              {t('home.newsletter_success')}
             </motion.p>
           ) : (
             <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
@@ -356,14 +347,14 @@ export const Home: React.FC = () => {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                placeholder="your.email@reserve.com"
+                placeholder={t('home.placeholder_email')}
                 className="flex-1 bg-brand-darkBg/60 border border-brand-gold/25 focus:border-brand-gold px-4 py-3 rounded-lg text-xs text-white outline-none transition-colors"
               />
               <button 
                 type="submit"
                 className="bg-brand-gold hover:bg-brand-goldDark text-brand-maroonDark font-bold px-6 py-3 rounded-lg text-xs uppercase tracking-wider transition-colors shadow-md cursor-pointer"
               >
-                Request Access
+                {t('home.cta_request')}
               </button>
             </form>
           )}
@@ -371,7 +362,7 @@ export const Home: React.FC = () => {
       </section>
 
       {/* STORE LOCATIONS MAP */}
-      <section className="py-20 px-6 md:px-12" id="locations">
+      <section className="py-16 md:py-20 px-4 md:px-12" id="locations">
         <div className="max-w-7xl mx-auto">
           <StoreMap />
         </div>

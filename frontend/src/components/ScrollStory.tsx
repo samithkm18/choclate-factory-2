@@ -17,7 +17,7 @@ interface Beat {
 const BEATS: Beat[] = [
   {
     title: "Arrival of Luxury",
-    subtitle: "Mani's Private Reserve",
+    subtitle: "Private Reserve",
     description: "Our signature blend arrives in its handcrafted velvet-finished box, waiting to be unlocked. Locked inside is a sensory masterpiece of conched cocoa.",
     icon: <Layers size={16} className="text-brand-gold" />
   },

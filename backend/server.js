@@ -20,6 +20,7 @@ import productsRouter from './routes/products.js';
 import ordersRouter from './routes/orders.js';
 import ownerRouter from './routes/owner.js';
 import mwcRouter from './routes/mwc.js';
+import jobsRouter from './routes/jobs.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -61,6 +62,7 @@ import Setting from './models/Setting.js';
 
 app.use('/api/owner', ownerRouter);
 app.use('/api/mwc', mwcRouter);
+app.use('/api/jobs', jobsRouter);
 
 // Public settings route (for footer/about page)
 app.get('/api/settings', async (req, res) => {
@@ -72,11 +74,11 @@ app.get('/api/settings', async (req, res) => {
     });
     
     return res.json({
-      business_name: rows.business_name || "Mani's Kote Factory",
+      business_name: rows.business_name || "Kote Factory",
       tagline: rows.tagline || 'Customize Your Happiness',
-      contact_email: rows.contact_email || 'concierge@maniskotefactory.com',
-      contact_phone: rows.contact_phone || '+1 (800) COCOA-LUXE',
-      contact_address: rows.contact_address || '700 Cocoa Boulevard, Suite 100, Chocolate District, Hershey PA 17033',
+      contact_email: rows.contact_email || 'manisales.international@gmail.com',
+      contact_phone: rows.contact_phone || '8660801536',
+      contact_address: rows.contact_address || 'https://maps.app.goo.gl/J25KDX7R3QEmaeHj7?g_st=iwb',
       delivery_zones: rows.delivery_zones ? JSON.parse(rows.delivery_zones) : [],
       announcement_banner: rows.announcement_banner || '',
       brand_logo_url: rows.brand_logo_url || '',

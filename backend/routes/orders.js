@@ -34,9 +34,16 @@ function jwtVerify(token) {
 const mapOrder = (order) => {
   if (!order) return null;
   const obj = order.toObject ? order.toObject() : order;
+  const custName = obj.customer_name || (obj.guest_info ? obj.guest_info.name : '') || (obj.user_id ? obj.user_id.name : 'Valued Customer');
+  const custEmail = obj.customer_email || (obj.guest_info ? obj.guest_info.email : '') || (obj.user_id ? obj.user_id.email : '');
+  const custPhone = obj.customer_phone || (obj.guest_info ? obj.guest_info.phone : '') || (obj.user_id ? obj.user_id.phone : '');
+
   return {
     ...obj,
     id: obj._id.toString(),
+    customer_name: custName,
+    customer_email: custEmail,
+    customer_phone: custPhone,
     items: obj.items || []
   };
 };
@@ -52,7 +59,7 @@ router.post('/', async (req, res) => {
     address, 
     guest_info,
     coordinates,       // { lat, lng }
-    payment_method,    // 'qr' or 'razorpay'
+    payment_method,    // 'qr', 'cod', or 'razorpay'
     transaction_ref    // UTR/Reference number
   } = req.body;
 
@@ -76,8 +83,13 @@ router.post('/', async (req, res) => {
   try {
     const itemsArr = typeof items === 'string' ? JSON.parse(items) : items;
 
-    // Server-side verification of pricing and discounts (never trust client calculations)
+    const custName = req.body.customer_name || guest_info?.name || 'Valued Customer';
+    const custEmail = req.body.customer_email || guest_info?.email || '';
+    const custPhone = req.body.customer_phone || guest_info?.phone || '';
+
+    // Server-side verification of pricing and discounts
     let computedSubtotal = 0;
+    const sanitizedItems = [];
     for (const item of itemsArr) {
       let prod = null;
       const idToSearch = item.productId || item.id;
@@ -86,8 +98,21 @@ router.post('/', async (req, res) => {
       } else {
         prod = await Product.findOne({ name: item.name });
       }
-      const itemPrice = prod ? prod.price : item.price;
-      computedSubtotal += itemPrice * item.quantity;
+      const itemPrice = prod ? prod.price : (typeof item.price === 'number' ? item.price : parseFloat(item.price || 0));
+      const itemQty = typeof item.quantity === 'number' ? item.quantity : parseInt(item.quantity || 1, 10);
+      const validPrice = isNaN(itemPrice) ? 0 : itemPrice;
+      const validQty = isNaN(itemQty) ? 1 : itemQty;
+      computedSubtotal += validPrice * validQty;
+
+      sanitizedItems.push({
+        productId: item.productId || item.id || (prod ? prod._id.toString() : 1),
+        name: item.name || (prod ? prod.name : 'Artisanal Chocolate Item'),
+        price: validPrice,
+        quantity: validQty,
+        variant: item.variant || 'Standard',
+        image: item.image || (prod && prod.images ? prod.images[0] : '/assets/products/placeholder.jpg'),
+        customBoxItems: item.customBoxItems || []
+      });
     }
 
     let flatDiscount = 0;
@@ -107,39 +132,61 @@ router.post('/', async (req, res) => {
       }
     }
 
-    const finalTotalAmount = Math.max(0, computedSubtotal - flatDiscount);
-
-    // Store guest contact inside address details if user is not authenticated
-    let finalAddress = address;
-    if (!userId && guest_info) {
-      finalAddress = `Name: ${guest_info.name} | Email: ${guest_info.email} | Phone: ${guest_info.phone} | Address: ${address}`;
-    }
+    const deliveryCharge = parseFloat(req.body.delivery_charge) || 0;
+    const clientTotal = parseFloat(total_amount);
+    const calculatedTotal = Math.max(0, computedSubtotal - flatDiscount + deliveryCharge);
+    const finalTotalAmount = (!isNaN(clientTotal) && clientTotal > 0) ? clientTotal : calculatedTotal;
 
     const isQr = payment_method === 'qr';
-    const orderStatus = 'pending';
-    const paymentStatus = isQr ? 'pending_confirmation' : 'unpaid';
-    const dummyIntentId = isQr ? ('qr_' + Math.random().toString(36).substring(2, 15)) : ('rzp_intent_' + Math.random().toString(36).substring(2, 15));
+    const isCod = payment_method === 'cod';
+    const orderStatus = 'Packing';
+    const paymentStatus = isQr ? 'pending_confirmation' : isCod ? 'cod_pending' : 'unpaid';
+    const dummyIntentId = isQr
+      ? ('qr_' + Math.random().toString(36).substring(2, 15))
+      : isCod
+      ? ('cod_' + Math.random().toString(36).substring(2, 15))
+      : ('rzp_intent_' + Math.random().toString(36).substring(2, 15));
 
     // Save order
     const order = new Order({
       user_id: userId || null,
+      customer_name: custName,
+      customer_email: custEmail,
+      customer_phone: custPhone,
       guest_info: !userId ? guest_info : null,
-      items: itemsArr,
+      items: sanitizedItems,
       total_amount: finalTotalAmount,
       discount_code: discount_code || null,
       discount_amount: flatDiscount,
       status: orderStatus,
-      delivery_date,
-      delivery_slot,
-      address: finalAddress,
+      delivery_charge: deliveryCharge,
+      expected_delivery_date: req.body.expected_delivery_date || '3-5 Business Days',
+      cancellation_deadline: req.body.cancellation_deadline || 'Within 24 hours of order placement',
+      payment_method: payment_method || (isCod ? 'cod' : isQr ? 'qr' : 'razorpay'),
+      delivery_date: delivery_date || '3-5 Business Days',
+      delivery_slot: delivery_slot || 'Standard',
+      address: address,
       coordinates: coordinates || null,
       payment_status: paymentStatus,
       payment_intent_id: dummyIntentId,
-      transaction_ref: isQr ? (transaction_ref || '') : null
+      transaction_ref: isQr ? (transaction_ref || '') : isCod ? 'COD' : null
     });
     await order.save();
 
     const orderId = order._id.toString();
+
+    // Handle COD separately — no payment gateway needed
+    if (isCod) {
+      const broadcast = req.app.get('broadcastOwnerMessage');
+      if (broadcast) {
+        broadcast({ type: 'NEW_ORDER', order: mapOrder(order) });
+      }
+      return res.status(201).json({
+        message: 'COD order placed successfully.',
+        orderId,
+        payment_method: 'cod'
+      });
+    }
 
     // Call Razorpay order API or fallback to mock sandbox
     let rzpOrder = null;
@@ -329,11 +376,43 @@ router.post('/webhook', async (req, res) => {
   }
 });
 
-// GET /api/orders/my-orders - Get logged-in user's order history
-router.get('/my-orders', authenticate, async (req, res) => {
-  const userId = req.user.id;
+// GET /api/orders/my-orders - Get customer order history (authenticated user or guest IDs)
+router.get('/my-orders', async (req, res) => {
   try {
-    const orders = await Order.find({ user_id: userId, payment_status: 'paid' }).sort({ created_at: -1 });
+    let userId = null;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      const token = authHeader.split(' ')[1];
+      try {
+        const decoded = jwtVerify(token);
+        if (decoded && decoded.id) {
+          userId = decoded.id;
+        }
+      } catch (e) {}
+    }
+
+    const guestIdsQuery = req.query.guest_ids || req.headers['x-guest-order-ids'];
+    let guestIds = [];
+    if (guestIdsQuery) {
+      guestIds = typeof guestIdsQuery === 'string' ? guestIdsQuery.split(',').map(s => s.trim()) : guestIdsQuery;
+    }
+
+    const filterOr = [];
+    if (userId) {
+      filterOr.push({ user_id: userId });
+    }
+    if (guestIds.length > 0) {
+      const validObjectIds = guestIds.filter(id => typeof id === 'string' && id.match(/^[0-9a-fA-F]{24}$/));
+      if (validObjectIds.length > 0) {
+        filterOr.push({ _id: { $in: validObjectIds } });
+      }
+    }
+
+    if (filterOr.length === 0) {
+      return res.json([]);
+    }
+
+    const orders = await Order.find({ $or: filterOr }).sort({ created_at: -1 });
     return res.json(orders.map(mapOrder));
   } catch (error) {
     console.error('Error fetching my orders:', error);
@@ -341,11 +420,95 @@ router.get('/my-orders', authenticate, async (req, res) => {
   }
 });
 
+// POST /api/orders/:id/cancel - Customer cancel order before deadline
+router.post('/:id/cancel', async (req, res) => {
+  const orderId = req.params.id;
+
+  if (!orderId || typeof orderId !== 'string' || !orderId.match(/^[0-9a-fA-F]{24}$/)) {
+    return res.status(400).json({ message: 'Invalid order ID format.' });
+  }
+
+  // Handle optional user auth or guest identification
+  let userId = null;
+  let userEmail = null;
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    try {
+      const decoded = jwtVerify(token);
+      if (decoded && decoded.id) {
+        userId = decoded.id;
+        userEmail = decoded.email || null;
+      }
+    } catch (e) {}
+  }
+
+  const guestIdsQuery = req.body.guest_ids || req.query.guest_ids || req.headers['x-guest-order-ids'];
+  let guestIds = [];
+  if (guestIdsQuery) {
+    guestIds = typeof guestIdsQuery === 'string' ? guestIdsQuery.split(',').map(s => s.trim()) : guestIdsQuery;
+  }
+
+  try {
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ message: 'Order not found.' });
+    }
+
+    // Ownership check: logged-in ID, email match, guest ID list, or unassigned guest order
+    const isUserOwner = Boolean(userId && order.user_id && order.user_id.toString() === userId);
+    const isEmailOwner = Boolean(userEmail && order.customer_email && userEmail.toLowerCase() === order.customer_email.toLowerCase());
+    const isGuestOwner = Boolean(guestIds && guestIds.includes(order._id.toString()));
+    const isCustomerAuthorized = isUserOwner || isEmailOwner || isGuestOwner || (!order.user_id && !userId);
+
+    if (!isCustomerAuthorized) {
+      return res.status(403).json({ message: 'You are not authorized to cancel this order.' });
+    }
+
+    // Status check
+    const currentStatus = (order.status || '').toLowerCase();
+    if (currentStatus.includes('deliver')) {
+      return res.status(400).json({ message: 'Delivered orders cannot be cancelled.' });
+    }
+    if (currentStatus.includes('cancel')) {
+      return res.status(400).json({ message: 'Order is already cancelled.' });
+    }
+
+    // Deadline check (24 hours from creation date)
+    const createdAt = new Date(order.created_at || Date.now());
+    const deadline = new Date(createdAt.getTime() + 24 * 60 * 60 * 1000);
+    const now = new Date();
+
+    if (now >= deadline) {
+      return res.status(400).json({ message: 'Cancellation deadline has passed. Orders can only be cancelled within 24 hours of placement.' });
+    }
+
+    // Update status to Cancelled
+    order.status = 'Cancelled';
+    await order.save();
+
+    // Broadcast update to owner if connected
+    const broadcast = req.app.get('broadcastOwnerMessage');
+    if (broadcast) {
+      broadcast({ type: 'ORDER_UPDATE', order: mapOrder(order) });
+    }
+
+    return res.json({
+      success: true,
+      message: 'Order cancelled successfully.',
+      order: mapOrder(order)
+    });
+  } catch (error) {
+    console.error('Error cancelling order:', error);
+    return res.status(500).json({ message: 'Could not process order cancellation.' });
+  }
+});
+
 // GET /api/orders/public/:id - Track guest/unauthenticated order journey
 router.get('/public/:id', async (req, res) => {
   const orderId = req.params.id;
   try {
-    const order = await Order.findById(orderId).select('id _id items total_amount status delivery_date delivery_slot created_at');
+    const order = await Order.findById(orderId);
     if (!order) {
       return res.status(404).json({ message: 'Order not found.' });
     }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Compass, Heart, Sparkles } from 'lucide-react';
+import { ShieldCheck, Compass, Heart, Sparkles, Mail, Phone, MapPin, ExternalLink } from 'lucide-react';
 
 interface AboutContent {
   story: string;
@@ -59,7 +59,7 @@ export const About: React.FC = () => {
         <div className="space-y-4 text-center">
           <span className="text-[10px] text-brand-gold uppercase tracking-[0.35em] font-extrabold block">✦ Our Heritage ✦</span>
           <h1 className="text-4xl md:text-6xl font-serif font-extrabold uppercase tracking-widest text-[var(--text-color)]">
-            ABOUT MANIS KOTE
+            ABOUT KOTE FACTORY
           </h1>
           <div className="w-16 h-[2.5px] bg-brand-gold mx-auto" />
         </div>
@@ -124,6 +124,73 @@ export const About: React.FC = () => {
           <p className="text-zinc-200 text-xs md:text-sm font-serif font-bold uppercase tracking-wider italic">
             "{content.quality_claims}"
           </p>
+        </div>
+
+        {/* Contact & Location Details */}
+        <div 
+          className="border border-brand-gold/15 rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden backdrop-blur-xl transition-all duration-500"
+          style={{
+            backgroundColor: theme === 'light' ? 'rgba(240, 234, 224, 0.65)' : 'rgba(18, 18, 18, 0.65)'
+          }}
+        >
+          <div className="space-y-4">
+            <span className="text-[10px] text-brand-gold uppercase tracking-[0.3em] font-extrabold block">✦ Get In Touch & Visit Us ✦</span>
+            <h3 className="text-lg md:text-xl font-serif text-[var(--text-color)] font-bold uppercase tracking-wide">
+              Contact & Factory Location
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+              {/* Email */}
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-brand-gold shrink-0">
+                  <Mail size={18} />
+                </div>
+                <div>
+                  <span className="text-[9px] text-zinc-400 uppercase tracking-widest font-extrabold block">Owner Email</span>
+                  <a 
+                    href="mailto:manisales.international@gmail.com" 
+                    className="text-xs font-semibold text-brand-gold hover:underline break-all"
+                  >
+                    manisales.international@gmail.com
+                  </a>
+                </div>
+              </div>
+
+              {/* Phone */}
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-brand-gold shrink-0">
+                  <Phone size={18} />
+                </div>
+                <div>
+                  <span className="text-[9px] text-zinc-400 uppercase tracking-widest font-extrabold block">Owner Phone</span>
+                  <a 
+                    href="tel:8660801536" 
+                    className="text-xs font-semibold text-white hover:text-brand-gold transition-colors font-mono"
+                  >
+                    +91 8660801536
+                  </a>
+                </div>
+              </div>
+
+              {/* Location */}
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 rounded-xl bg-brand-gold/10 border border-brand-gold/20 flex items-center justify-center text-brand-gold shrink-0">
+                  <MapPin size={18} />
+                </div>
+                <div>
+                  <span className="text-[9px] text-zinc-400 uppercase tracking-widest font-extrabold block">Factory Location</span>
+                  <a 
+                    href="https://maps.app.goo.gl/J25KDX7R3QEmaeHj7?g_st=iwb" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-brand-gold hover:underline mt-0.5"
+                  >
+                    View on Google Maps <ExternalLink size={12} />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
       </div>

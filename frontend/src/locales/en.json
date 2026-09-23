@@ -1,48 +1,119 @@
 {
   "nav": {
+    "shop": "Shop",
     "catalog": "Catalog",
     "builder": "Custom Box",
     "about": "About Us",
-    "login": "Log In",
-    "profile": "Profile",
-    "cart": "Bag"
+    "cart": "Bag",
+    "menu": "Menu",
+    "owner": "Owner",
+    "mwc": "MWC"
   },
   "home": {
-    "title": "Mani's Private Reserve",
-    "explore": "Explore Showcase",
+    "hero_tag": "✦ Mani's Private Reserve ✦",
+    "title_brand": "MANIS KOTE FACTORY",
+    "bullets": {
+      "artisanal": "Artisanal Excellence",
+      "since": "Since 1985",
+      "craft": "Premium Craft",
+      "heritage": "Heritage",
+      "innovation": "Innovation"
+    },
+    "hero_desc": "Single-origin Venezuelan seeds, micro-refined textures, and edible 24k gold leaf. A cinematic symphony of gourmet alchemy.",
+    "explore_btn": "Explore Showcase",
+    "scroll_enter": "Scroll To Enter",
     "newsletter_title": "JOIN THE CHOCOLATE CLUB",
     "newsletter_desc": "Subscribe to receive exclusive access to private reserve batches, new arrival spotlights, and custom chocolate tastings.",
-    "cta_request": "Request Access"
+    "newsletter_success": "✓ Thank you. Your luxury reserve invite has been registered.",
+    "cta_request": "Request Access",
+    "placeholder_email": "your.email@reserve.com"
   },
-  "catalog": {
-    "title": "LUXURY CONFECTIONERY CATALOG",
-    "search_placeholder": "Search chocolate reserve...",
-    "add_to_cart": "Add to Bag",
-    "out_of_stock": "Out of Stock",
-    "inspect": "Inspect Details"
+  "shop": {
+    "atelier_title": "The Atelier Collections",
+    "main_heading": "ORDER CHOCOLATES",
+    "sub_heading": "Order directly from our master conchers. Freshly prepared, micro-batched, and hand-delivered in secure thermo-regulated boxes.",
+    "categories": {
+      "all": "All Collections",
+      "dark": "Dark Chocolate",
+      "milk": "Milk Chocolate",
+      "white": "White Chocolate",
+      "botanical": "Botanical Chocolate"
+    },
+    "search_placeholder": "Search chocolates or flavor notes...",
+    "price_range": "Price Range",
+    "dietary_tags": "Dietary Tags",
+    "reset": "Reset",
+    "refine": "Refine Selection",
+    "no_products": "No chocolates match your selections.",
+    "clear_filters": "Clear Filters",
+    "add_to_cart": "Add to Cart",
+    "direct_order": "Direct Order",
+    "wishlist": "Wishlist",
+    "wishlisted": "Wishlisted",
+    "out_of_stock": "Sold Out",
+    "new_arrival": "New Arrival",
+    "details": "Details",
+    "cocoa": "Cocoa"
+  },
+  "product": {
+    "select_variant": "Select Box Weight / Variant",
+    "flavor_notes": "Sensory Flavor Profile",
+    "dietary_certs": "Dietary & Purity Credentials",
+    "key_specs": "Artisanal Specifications",
+    "packaging": "Packaging",
+    "shelf_life": "Shelf Life",
+    "storage": "Storage",
+    "allergens": "Allergen Declaration",
+    "back_to_catalog": "Back to Catalog",
+    "add_to_cart": "Add to Cart",
+    "direct_order": "Direct Order",
+    "added_to_cart": "Added to Cart!"
   },
   "cart": {
     "title": "YOUR SHOPPING BAG",
     "empty": "Your shopping bag is empty",
     "checkout": "Proceed to Checkout",
-    "total": "Total Amount"
+    "total": "Total Amount",
+    "subtotal": "Subtotal",
+    "items": "Items",
+    "remove": "Remove",
+    "continue_shopping": "Continue Shopping"
   },
   "checkout": {
     "title": "SECURE LUXURY CHECKOUT",
-    "delivery_address": "Delivery Address",
-    "select_slot": "Select Delivery Slot",
-    "guest_checkout": "Checkout as Guest",
-    "saved_addresses": "Saved Addresses",
+    "guest_book": "THE GUEST BOOK",
+    "customer_details": "1. Customer Details",
+    "delivery_location": "2. Delivery Location (Map Pin-Drop)",
+    "schedule_slot": "3. Schedule Slot",
+    "order_summary": "Order Summary",
     "full_name": "Full Name",
-    "address_placeholder": "123 Chocolate Lane, Royal Estate",
-    "pay_now": "Pay with Razorpay",
-    "success_title": "Order Placed Successfully",
+    "email": "Contact Email",
+    "phone": "Contact Phone",
+    "street_address": "Street address & Flat details",
+    "delivery_date": "Delivery Date",
+    "delivery_slot": "Preferred Slot",
+    "payment_mode": "Choose Payment Mode",
+    "qr_upi": "QR Code UPI",
+    "razorpay": "Razorpay SDK",
+    "cod": "Cash on Delivery",
+    "place_order_qr": "Confirm Payment & Place Order",
+    "place_order_rzp": "Place Order & Pay",
+    "place_order_cod": "Place COD Order",
+    "order_success": "Order Placed Successfully!",
+    "return_storefront": "Return to Storefront",
     "verification_pending": "Verifying transaction secure signatures..."
   },
-  "tracking": {
-    "title": "ORDER JOURNEY TRACKING",
-    "order_status": "Order Status",
-    "date": "Date",
-    "slot": "Delivery Slot"
+  "footer": {
+    "tagline": "Customize Your Happiness",
+    "about_desc": "Crafting raw single-origin cocoa into premium, custom-assembled sensory experiences for true connoisseurs since 2026.",
+    "follow_ig": "Follow us on Instagram",
+    "experience": "The Experience",
+    "shop": "Chocolate Shop",
+    "builder": "Custom Box Builder",
+    "coverage": "Delivery Coverage",
+    "concierge": "The Concierge",
+    "owner": "Owner Dashboard",
+    "mwc": "MWC Developer",
+    "rights": "All rights reserved. Custom box configurations are trademarked."
   }
 }

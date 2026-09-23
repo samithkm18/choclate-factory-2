@@ -11,6 +11,9 @@ import Poster from '../models/Poster.js';
 import Review from '../models/Review.js';
 import Coupon from '../models/Coupon.js';
 import Location from '../models/Location.js';
+import Job from '../models/Job.js';
+import JobApplication from '../models/JobApplication.js';
+import ContactSubmission from '../models/ContactSubmission.js';
 import { authenticate, authorizeRoles } from '../middleware/auth.js';
 import { logAction } from '../utils/audit.js';
 import { uploadToCloudinary, deleteFromCloudinary } from '../utils/storage.js';
@@ -120,6 +123,78 @@ const mapProduct = (item) => {
 router.use(authenticate);
 router.use(authorizeRoles('owner'));
 
+// GET /api/owner/overall-review - Aggregated real customer activity overview
+router.get('/overall-review', async (req, res) => {
+  try {
+    const orders = await Order.find().sort({ created_at: -1 });
+    const reviews = await Review.find().sort({ created_at: -1 });
+    const jobApplications = await JobApplication.find().sort({ submitted_at: -1 });
+    const productsCount = await Product.countDocuments();
+
+    const mappedOrders = orders.map(o => {
+      const obj = o.toObject ? o.toObject() : o;
+      const custName = obj.customer_name || (obj.guest_info ? obj.guest_info.name : '') || 'Customer';
+      const custEmail = obj.customer_email || (obj.guest_info ? obj.guest_info.email : '') || '';
+      const custPhone = obj.customer_phone || (obj.guest_info ? obj.guest_info.phone : '') || '';
+      return {
+        ...obj,
+        id: obj._id.toString(),
+        customer_name: custName,
+        customer_email: custEmail,
+        customer_phone: custPhone,
+        items: obj.items || []
+      };
+    });
+
+    const totalRevenue = mappedOrders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+    const avgRating = reviews.length > 0 ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1) : '5.0';
+
+    return res.json({
+      summary: {
+        totalOrders: mappedOrders.length,
+        totalRevenue: Math.round(totalRevenue),
+        totalReviews: reviews.length,
+        avgRating: parseFloat(avgRating),
+        totalApplications: jobApplications.length,
+        activeProductsCount: productsCount
+      },
+      orders: mappedOrders,
+      reviews,
+      jobApplications
+    });
+  } catch (error) {
+    console.error('Error loading overall review:', error);
+    return res.status(500).json({ message: 'Internal server error loading overall review.' });
+  }
+});
+
+// GET /api/owner/messages - Retrieve real customer contact messages (Owner only)
+router.get('/messages', async (req, res) => {
+  try {
+    const messages = await ContactSubmission.find().sort({ created_at: -1 });
+    return res.json(messages);
+  } catch (error) {
+    console.error('Error fetching customer messages:', error);
+    return res.status(500).json({ message: 'Error retrieving messages.' });
+  }
+});
+
+// PUT /api/owner/messages/:id/status - Update message status
+router.put('/messages/:id/status', async (req, res) => {
+  const { status } = req.body;
+  try {
+    const msg = await ContactSubmission.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+    return res.json(msg);
+  } catch (error) {
+    console.error('Error updating message status:', error);
+    return res.status(500).json({ message: 'Error updating message status.' });
+  }
+});
+
 // GET /api/owner/analytics - Live sales data and summary metrics
 router.get('/analytics', async (req, res) => {
   try {
@@ -200,16 +275,21 @@ router.get('/orders', async (req, res) => {
 
   try {
     const orders = await Order.find(filter)
-      .populate('user_id', 'name email')
+      .populate('user_id', 'name email phone')
       .sort({ created_at: -1 });
 
     const mapped = orders.map(o => {
       const obj = o.toObject();
+      const custName = obj.customer_name || (obj.guest_info ? obj.guest_info.name : '') || (obj.user_id ? obj.user_id.name : 'Valued Customer');
+      const custEmail = obj.customer_email || (obj.guest_info ? obj.guest_info.email : '') || (obj.user_id ? obj.user_id.email : '');
+      const custPhone = obj.customer_phone || (obj.guest_info ? obj.guest_info.phone : '') || (obj.user_id ? obj.user_id.phone : '');
+
       return {
         ...obj,
         id: obj._id.toString(),
-        customer_name: obj.user_id ? obj.user_id.name : (obj.guest_info ? obj.guest_info.name : 'Guest'),
-        customer_email: obj.user_id ? obj.user_id.email : (obj.guest_info ? obj.guest_info.email : '')
+        customer_name: custName,
+        customer_email: custEmail,
+        customer_phone: custPhone
       };
     });
     return res.json(mapped);
@@ -219,13 +299,29 @@ router.get('/orders', async (req, res) => {
   }
 });
 
-// PUT /api/owner/orders/:id/status - Update order preparation/delivery state
+// PUT /api/owner/orders/:id/status - Update order status (Owner/Admin only)
 router.put('/orders/:id/status', async (req, res) => {
   const { status } = req.body;
-  const validStatuses = ['preparing', 'packed', 'out_for_delivery', 'delivered', 'cancelled'];
+  const validStatuses = [
+    'Packing', 'Out for Delivery', 'Delivered', 'Cancelled',
+    'packing', 'out_for_delivery', 'delivered', 'cancelled', 'preparing', 'packed', 'pending'
+  ];
 
   if (!status || !validStatuses.includes(status)) {
     return res.status(400).json({ message: 'Invalid or missing order status.' });
+  }
+
+  // Standardize status label for DB storage
+  let normalizedStatus = status;
+  const sLower = status.toLowerCase();
+  if (sLower.includes('deliver')) {
+    normalizedStatus = 'Delivered';
+  } else if (sLower.includes('out') || sLower.includes('transit')) {
+    normalizedStatus = 'Out for Delivery';
+  } else if (sLower.includes('cancel')) {
+    normalizedStatus = 'Cancelled';
+  } else {
+    normalizedStatus = 'Packing';
   }
 
   try {
@@ -235,12 +331,18 @@ router.put('/orders/:id/status', async (req, res) => {
     }
 
     const oldStatus = existingOrder.status;
-    existingOrder.status = status;
+    existingOrder.status = normalizedStatus;
     await existingOrder.save();
 
-    await logAction(req.user.id, 'ORDER_STATUS_UPDATE', { orderId: req.params.id, from: oldStatus, to: status }, req.ip);
+    // Broadcast status change to connected clients/owners
+    const broadcast = req.app.get('broadcastOwnerMessage');
+    if (broadcast) {
+      broadcast({ type: 'ORDER_UPDATE', orderId: req.params.id, status: normalizedStatus });
+    }
 
-    return res.json({ message: 'Order status updated successfully.', orderId: req.params.id, status });
+    await logAction(req.user.id, 'ORDER_STATUS_UPDATE', { orderId: req.params.id, from: oldStatus, to: normalizedStatus }, req.ip);
+
+    return res.json({ message: 'Order status updated successfully.', orderId: req.params.id, status: normalizedStatus });
   } catch (error) {
     console.error('Error updating order status:', error);
     return res.status(500).json({ message: 'Error updating order.' });
@@ -318,7 +420,7 @@ router.post('/products', uploadFieldsMiddleware([
 ]), async (req, res) => {
   const { 
     name, slug, description, price, stock, category, dietary_tags, 
-    flavor_profile, fallback_ingredients, video_url, video_thumbnail_url,
+    flavor_profile, fallback_ingredients, video_url, video_thumbnail_url, image_url,
     cocoa_percentage, weight, origin, allergens, specifications, nutrition, is_new
   } = req.body;
 
@@ -333,9 +435,11 @@ router.post('/products', uploadFieldsMiddleware([
       return res.status(400).json({ message: 'Product slug already exists. Please choose a unique URL name.' });
     }
 
-    // Set paths from uploaded files
+    // Set paths from uploaded files or image_url
     let imagePath = '/assets/products/placeholder.jpg';
-    if (req.files && req.files.image && req.files.image[0]) {
+    if (image_url) {
+      imagePath = image_url;
+    } else if (req.files && req.files.image && req.files.image[0]) {
       const cUrl = await uploadToCloudinary(req.files.image[0].path, 'image');
       imagePath = cUrl || `/uploads/images/${req.files.image[0].filename}`;
     }
@@ -401,7 +505,7 @@ router.put('/products/:id', uploadFieldsMiddleware([
 ]), async (req, res) => {
   const { 
     name, description, price, stock, category, dietary_tags, 
-    flavor_profile, fallback_ingredients, video_url, video_thumbnail_url,
+    flavor_profile, fallback_ingredients, video_url, video_thumbnail_url, image_url,
     cocoa_percentage, weight, origin, allergens, specifications, nutrition, is_new
   } = req.body;
   const productId = req.params.id;
@@ -435,6 +539,8 @@ router.put('/products/:id', uploadFieldsMiddleware([
     if (req.files && req.files.image && req.files.image[0]) {
       const cUrl = await uploadToCloudinary(req.files.image[0].path, 'image');
       product.images = [cUrl || `/uploads/images/${req.files.image[0].filename}`];
+    } else if (image_url) {
+      product.images = [image_url];
     }
 
     if (req.files && req.files.video && req.files.video[0]) {
@@ -924,17 +1030,147 @@ router.delete('/locations/:id', async (req, res) => {
   }
 });
 
-// PUT /api/owner/about - Update brand About Us content
-router.put('/about', async (req, res) => {
-  const { story, usps, quality_claims, images } = req.body;
+// PUT /api/owner/products/:id - Update product details (price, stock, bestseller, delivery charge, dates)
+router.put('/products/:id', authenticate, authorizeRoles('owner'), async (req, res) => {
+  const { price, stock, is_bestseller, delivery_charge, expected_delivery_date, cancellation_deadline, cod_available } = req.body;
   try {
-    const value = JSON.stringify({ story, usps, quality_claims, images });
-    await Setting.findOneAndUpdate({ key: 'about_us_content' }, { value }, { upsert: true });
-    await logAction(req.user.id, 'ABOUT_CONTENT_UPDATE', {}, req.ip);
-    return res.json({ message: 'About Us content updated successfully.' });
+    const updateData = {};
+    if (price !== undefined) updateData.price = parseFloat(price);
+    if (stock !== undefined) updateData.stock = parseInt(stock);
+    if (is_bestseller !== undefined) updateData.is_bestseller = Boolean(is_bestseller);
+    if (delivery_charge !== undefined) updateData.delivery_charge = parseFloat(delivery_charge);
+    if (expected_delivery_date !== undefined) updateData.expected_delivery_date = expected_delivery_date;
+    if (cancellation_deadline !== undefined) updateData.cancellation_deadline = cancellation_deadline;
+    if (cod_available !== undefined) updateData.cod_available = Boolean(cod_available);
+
+    const product = await Product.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found.' });
+    }
+    await logAction(req.user.id, 'PRODUCT_UPDATE', { id: req.params.id, updateData }, req.ip);
+    return res.json({ message: 'Product updated successfully.', product });
   } catch (error) {
-    console.error('Error saving about details:', error);
-    return res.status(500).json({ message: 'Error updating brand details.' });
+    console.error('Error updating product:', error);
+    return res.status(500).json({ message: 'Error updating product.' });
+  }
+});
+
+// JOB MANAGEMENT ROUTES (OWNER)
+
+// GET /api/owner/jobs - Get all jobs (published & unpublished)
+router.get('/jobs', authenticate, authorizeRoles('owner'), async (req, res) => {
+  try {
+    const jobs = await Job.find({}).sort({ posted_date: -1 });
+    const mapped = jobs.map(j => {
+      const obj = j.toObject();
+      return { ...obj, id: obj._id.toString() };
+    });
+    return res.json(mapped);
+  } catch (error) {
+    console.error('Error fetching jobs for owner:', error);
+    return res.status(500).json({ message: 'Error retrieving jobs.' });
+  }
+});
+
+// POST /api/owner/jobs - Create a new job opening
+router.post('/jobs', authenticate, authorizeRoles('owner'), async (req, res) => {
+  const { title, department, description, responsibilities, required_skills, qualifications, experience, location, employment_type, application_deadline, is_published } = req.body;
+  if (!title || !department || !description) {
+    return res.status(400).json({ message: 'Title, department, and description are required.' });
+  }
+  try {
+    const job = new Job({
+      title,
+      department,
+      description,
+      responsibilities: responsibilities || '',
+      required_skills: required_skills || '',
+      qualifications: qualifications || '',
+      experience: experience || '',
+      location: location || 'Mysuru, Karnataka',
+      employment_type: employment_type || 'Full-Time',
+      application_deadline: application_deadline || 'Open until filled',
+      is_published: is_published !== undefined ? Boolean(is_published) : true
+    });
+    await job.save();
+    await logAction(req.user.id, 'JOB_CREATE', { id: job._id.toString(), title }, req.ip);
+    return res.status(201).json({ id: job._id.toString(), message: 'Job opening created successfully.' });
+  } catch (error) {
+    console.error('Error creating job:', error);
+    return res.status(500).json({ message: 'Error creating job opening.' });
+  }
+});
+
+// PUT /api/owner/jobs/:id - Update job opening
+router.put('/jobs/:id', authenticate, authorizeRoles('owner'), async (req, res) => {
+  const { title, department, description, responsibilities, required_skills, qualifications, experience, location, employment_type, application_deadline, is_published } = req.body;
+  try {
+    const job = await Job.findByIdAndUpdate(req.params.id, {
+      title,
+      department,
+      description,
+      responsibilities,
+      required_skills,
+      qualifications,
+      experience,
+      location,
+      employment_type,
+      application_deadline,
+      is_published
+    }, { new: true });
+
+    if (!job) {
+      return res.status(404).json({ message: 'Job opening not found.' });
+    }
+    await logAction(req.user.id, 'JOB_UPDATE', { id: req.params.id, title }, req.ip);
+    return res.json({ message: 'Job updated successfully.', job });
+  } catch (error) {
+    console.error('Error updating job:', error);
+    return res.status(500).json({ message: 'Error updating job.' });
+  }
+});
+
+// PATCH /api/owner/jobs/:id/publish - Toggle publish/unpublish job
+router.patch('/jobs/:id/publish', authenticate, authorizeRoles('owner'), async (req, res) => {
+  const { is_published } = req.body;
+  try {
+    const job = await Job.findByIdAndUpdate(req.params.id, { is_published: Boolean(is_published) }, { new: true });
+    if (!job) {
+      return res.status(404).json({ message: 'Job opening not found.' });
+    }
+    await logAction(req.user.id, 'JOB_TOGGLE_PUBLISH', { id: req.params.id, is_published }, req.ip);
+    return res.json({ message: `Job ${is_published ? 'published' : 'unpublished'} successfully.` });
+  } catch (error) {
+    console.error('Error toggling job publish status:', error);
+    return res.status(500).json({ message: 'Error updating publish status.' });
+  }
+});
+
+// DELETE /api/owner/jobs/:id - Delete job opening
+router.delete('/jobs/:id', authenticate, authorizeRoles('owner'), async (req, res) => {
+  try {
+    await Job.findByIdAndDelete(req.params.id);
+    await JobApplication.deleteMany({ job_id: req.params.id });
+    await logAction(req.user.id, 'JOB_DELETE', { id: req.params.id }, req.ip);
+    return res.json({ message: 'Job opening deleted successfully.' });
+  } catch (error) {
+    console.error('Error deleting job:', error);
+    return res.status(500).json({ message: 'Error deleting job opening.' });
+  }
+});
+
+// GET /api/owner/jobs/:id/applications - Get applications for a specific job
+router.get('/jobs/:id/applications', authenticate, authorizeRoles('owner'), async (req, res) => {
+  try {
+    const apps = await JobApplication.find({ job_id: req.params.id }).sort({ submitted_at: -1 });
+    const mapped = apps.map(a => {
+      const obj = a.toObject();
+      return { ...obj, id: obj._id.toString() };
+    });
+    return res.json(mapped);
+  } catch (error) {
+    console.error('Error fetching job applications:', error);
+    return res.status(500).json({ message: 'Error retrieving applications.' });
   }
 });
 

@@ -19,7 +19,7 @@ export const CustomerCare: React.FC = () => {
     contact_email: 'concierge@maniskotefactory.com',
     contact_phone: '+1 (800) COCOA-LUXE',
     contact_address: '700 Cocoa Boulevard, Suite 100, Chocolate District',
-    business_name: "Mani's Kote Factory",
+    business_name: "Kote Factory",
     tagline: 'Customize Your Happiness'
   });
 
