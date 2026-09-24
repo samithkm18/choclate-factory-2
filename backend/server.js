@@ -175,7 +175,7 @@ const broadcastOwnerMessage = (data) => {
 // Expose broadcaster to express app
 app.set('broadcastOwnerMessage', broadcastOwnerMessage);
 
-// Initialize DB and Start listening
+// Initialize DB and Start listening (only when run directly, not when imported as Vercel handler)
 const startServer = async () => {
   try {
     await initDb();
@@ -191,4 +191,8 @@ const startServer = async () => {
   }
 };
 
-startServer();
+if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
+  startServer();
+}
+
+export default app;

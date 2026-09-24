@@ -2,11 +2,20 @@
  * Centralized API and WebSocket Configuration
  * 
  * In development: defaults to local backend at http://localhost:5000
- * In production (Vercel): uses the environment variable VITE_API_URL
+ * In production (Vercel): defaults to same-origin window.location.origin (or VITE_API_URL if set)
  */
 
-export const API_BASE_URL: string = 
-  (import.meta.env.VITE_API_URL as string)?.replace(/\/$/, '') || 'http://localhost:5000';
+const getInitialApiBaseUrl = (): string => {
+  if (import.meta.env.VITE_API_URL) {
+    return (import.meta.env.VITE_API_URL as string).replace(/\/$/, '');
+  }
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    return window.location.origin;
+  }
+  return 'http://localhost:5000';
+};
+
+export const API_BASE_URL: string = getInitialApiBaseUrl();
 
 export const WS_BASE_URL: string = 
   (import.meta.env.VITE_WS_URL as string)?.replace(/\/$/, '') || 
@@ -19,7 +28,6 @@ export const WS_BASE_URL: string =
 export const getAssetUrl = (url?: string | null): string => {
   if (!url) return '';
   if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
-    // If it's hardcoded to localhost:5000 and we have a production API_BASE_URL, rewrite it
     if (url.includes('localhost:5000') && API_BASE_URL !== 'http://localhost:5000') {
       return url.replace(/https?:\/\/localhost:5000/g, API_BASE_URL);
     }
