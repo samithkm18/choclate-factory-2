@@ -31,7 +31,13 @@ export const OwnerLogin: React.FC = () => {
         body: JSON.stringify({ email: cleanEmail, password: cleanPass })
       });
 
-      const data = await res.json();
+      const responseText = await res.text();
+      let data: any = {};
+      try {
+        data = JSON.parse(responseText);
+      } catch (parseErr) {
+        console.warn('Response is not JSON:', responseText.slice(0, 100));
+      }
 
       if (res.ok) {
         if (data.user && data.user.role === 'owner') {
@@ -46,14 +52,20 @@ export const OwnerLogin: React.FC = () => {
           setError('Invalid email or password. Please verify credentials.');
         } else if (res.status === 403) {
           setError(data.message || 'Account disabled. Contact system administrator.');
+        } else if (res.status === 404) {
+          setError('Authentication API endpoint not found (404). Check server deployment.');
+        } else if (res.status === 405) {
+          setError('Method Not Allowed (405). Server routing error.');
         } else if (res.status === 429) {
           setError('Too many login attempts. Please try again in a few minutes.');
+        } else if (res.status >= 500) {
+          setError(`Server error (${res.status}). Authentication service currently unavailable.`);
         } else {
           setError(data.message || 'Authentication failed. Please check your credentials.');
         }
       }
-    } catch (err) {
-      console.error('Login error:', err);
+    } catch (err: any) {
+      console.error('Login request error:', err);
       setError('Network connection failed. Unable to connect to authentication server.');
     } finally {
       setLoading(false);
