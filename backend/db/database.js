@@ -60,12 +60,12 @@ export const initDb = async () => {
       if (usersCount === 0) {
         console.log('Seeding default user accounts...');
         const userHash = await bcrypt.hash('userpassword123', 10);
-        const ownerHash = await bcrypt.hash('ownerpassword123', 10);
+        const ownerHash = await bcrypt.hash('passwordkotefactory', 10);
         const mwcHash = await bcrypt.hash('mwcpassword123', 10);
 
         await User.insertMany([
           { name: 'Audrey Hepburn', email: 'user@manis.com', password_hash: userHash, role: 'user', status: 'active' },
-          { name: 'Mani Kote', email: 'owner@manis.com', password_hash: ownerHash, role: 'owner', status: 'active' },
+          { name: 'Mani Kote', email: 'kotefactory@gmail.com', password_hash: ownerHash, role: 'owner', status: 'active' },
           { name: 'MWC Developer', email: 'mwc@manis.com', password_hash: mwcHash, role: 'mwc', status: 'active' }
         ]);
         console.log('User accounts seeded.');
