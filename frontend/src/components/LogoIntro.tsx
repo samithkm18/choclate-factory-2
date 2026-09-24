@@ -8,7 +8,7 @@ export const LogoIntro: React.FC<LogoIntroProps> = ({ onComplete }) => {
   const [showSkip, setShowSkip] = useState(false);
   const [isWiping, setIsWiping] = useState(false);
   const [videoLoaded, setVideoLoaded] = useState(false);
-  const [logoUrl, setLogoUrl] = useState('');
+  const [logoUrl, setLogoUrl] = useState('/logo.png');
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
@@ -59,7 +59,7 @@ export const LogoIntro: React.FC<LogoIntroProps> = ({ onComplete }) => {
 
   return (
     <div 
-      className={`fixed inset-0 z-[99999] bg-[#0D0506] flex items-center justify-center transition-all duration-[900ms] overflow-hidden ${
+      className={`fixed inset-0 z-[99999] bg-[#0D0506] flex items-center justify-center transition-all duration-[900ms] overflow-hidden w-full h-full min-h-[100dvh] ${
         isWiping ? 'scale-150 opacity-0 pointer-events-none' : ''
       }`}
       style={{
@@ -71,19 +71,16 @@ export const LogoIntro: React.FC<LogoIntroProps> = ({ onComplete }) => {
       {/* Luxury Loading Screen with Logo Asset */}
       {!videoLoaded && (
         <div className="absolute inset-0 flex flex-col items-center justify-center space-y-6 bg-[#0D0506] z-50">
-          {logoUrl ? (
+          <div className="w-16 h-16 border-2 border-brand-gold/40 rounded-full flex items-center justify-center bg-brand-maroonDark overflow-hidden shadow-[0_0_20px_rgba(212,175,55,0.3)] animate-pulse">
             <img 
-              src={`http://localhost:5000${logoUrl}`} 
+              src={logoUrl.startsWith('http') || logoUrl.startsWith('/logo.png') ? logoUrl : `http://localhost:5000${logoUrl}`} 
               alt="Mani's Logo" 
-              className="w-16 h-16 object-contain animate-pulse" 
+              className="w-full h-full object-cover rounded-full" 
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = '/logo.png';
+              }}
             />
-          ) : (
-            <div className="w-16 h-16 border border-brand-gold/40 rounded-xl flex items-center justify-center bg-brand-maroonDark/40 animate-pulse">
-              <svg viewBox="0 0 24 24" className="w-9 h-9 fill-brand-gold">
-                <path d="M12 2C8 6 6 9 6 13c0 3.3 2.7 6 6 6s6-2.7 6-6c0-4-2-7-6-11zm0 2.2c2.4 2.8 3.8 5.1 3.8 8.8 0 2.1-1.7 3.8-3.8 3.8S8.2 15.1 8.2 13c0-3.7 1.4-6 3.8-8.8zM12 9c-.6 0-1 .4-1 1s.4 1 1 1 1-.4 1-1-.4-1-1-1zm0 4c-.6 0-1 .4-1 1v2c0 .6.4 1 1 1s1-.4 1-1v-2c0-.6-.4-1-1-1z" />
-              </svg>
-            </div>
-          )}
+          </div>
           <div className="w-10 h-10 border-2 border-brand-gold/25 border-t-brand-gold rounded-full animate-spin" />
           <h2 className="text-brand-gold font-serif text-[10px] tracking-[0.3em] uppercase animate-pulse">
             Loading Experience
@@ -95,7 +92,7 @@ export const LogoIntro: React.FC<LogoIntroProps> = ({ onComplete }) => {
       <video
         ref={videoRef}
         src="https://res.cloudinary.com/dwji2t2uj/video/upload/q_auto,f_auto/Chocolate_brand_logo_reveal_1080p_202608250010_tjizhm.mp4"
-        className="w-full h-full object-cover absolute inset-0 z-10 transition-opacity duration-700 pointer-events-none"
+        className="w-full h-full max-w-full max-h-full object-contain absolute inset-0 m-auto z-10 transition-opacity duration-700 pointer-events-none"
         style={{ 
           opacity: videoLoaded ? 1 : 0,
           backgroundColor: '#0D0506'
@@ -111,7 +108,7 @@ export const LogoIntro: React.FC<LogoIntroProps> = ({ onComplete }) => {
       {showSkip && (
         <button
           onClick={triggerWipe}
-          className="absolute bottom-10 z-20 px-8 py-3 bg-brand-maroon/60 hover:bg-brand-maroon border border-brand-gold/40 hover:border-brand-gold rounded-full text-brand-gold text-[10px] uppercase tracking-widest transition-all duration-300 transform hover:scale-105 active:scale-95 font-semibold backdrop-blur-md cursor-pointer"
+          className="absolute bottom-8 sm:bottom-10 z-20 px-8 py-3 bg-brand-maroon/60 hover:bg-brand-maroon border border-brand-gold/40 hover:border-brand-gold rounded-full text-brand-gold text-[10px] uppercase tracking-widest transition-all duration-300 transform hover:scale-105 active:scale-95 font-semibold backdrop-blur-md cursor-pointer"
         >
           Skip Invitation
         </button>

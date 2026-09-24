@@ -39,7 +39,14 @@ export const Footer: React.FC = () => {
       <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 mb-10 md:mb-12">
         {/* Brand Information */}
         <div className="space-y-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 border border-brand-gold/40 rounded-full overflow-hidden shrink-0 shadow-[0_0_10px_rgba(212,175,55,0.2)] bg-brand-maroonDark">
+              <img 
+                src="/logo.png" 
+                alt="Kote Factory Logo" 
+                className="w-full h-full object-cover rounded-full" 
+              />
+            </div>
             <h2 className="text-lg md:text-xl font-serif text-brand-gold uppercase tracking-widest font-bold">
               {settings.business_name}
             </h2>

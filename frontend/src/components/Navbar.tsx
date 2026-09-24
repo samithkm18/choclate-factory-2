@@ -11,7 +11,7 @@ export const Navbar: React.FC = () => {
   const { t, i18n } = useTranslation();
 
   // Settings state
-  const [logoUrl, setLogoUrl] = useState('');
+  const [logoUrl, setLogoUrl] = useState('/logo.png');
   const [businessName, setBusinessName] = useState("Kote Factory");
   const [instagramUsername, setInstagramUsername] = useState('maniskotefactory');
 
@@ -61,26 +61,29 @@ export const Navbar: React.FC = () => {
     setLangDropdownOpen(false);
   };
 
+  const resolvedLogo = logoUrl
+    ? logoUrl.startsWith('http')
+      ? logoUrl
+      : logoUrl.startsWith('/uploads')
+        ? `http://localhost:5000${logoUrl}`
+        : logoUrl
+    : '/logo.png';
+
   return (
     <nav className="fixed top-0 left-0 w-full z-[9900] glass-nav h-20 md:h-28 flex items-center px-4 md:px-12 justify-between border-b border-brand-gold/15 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.7)]">
       
       {/* Left: Brand Logo & Name */}
       <Link to="/" className="flex items-center gap-2.5 md:gap-4 group shrink-0">
-        {logoUrl ? (
-          <div className="w-9 h-9 md:w-12 md:h-12 border-2 border-brand-gold/35 group-hover:border-brand-gold rounded-xl flex items-center justify-center bg-brand-maroonDark/60 transition-all duration-500 overflow-hidden p-1 shadow-[0_0_15px_rgba(212,175,55,0.15)]">
-            <img 
-              src={`http://localhost:5000${logoUrl}`} 
-              alt="Mani's Logo" 
-              className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" 
-            />
-          </div>
-        ) : (
-          <div className="w-9 h-9 md:w-12 md:h-12 border-2 border-brand-gold/35 group-hover:border-brand-gold rounded-xl flex items-center justify-center bg-brand-maroonDark/50 transition-all duration-500 shadow-[0_0_15px_rgba(212,175,55,0.15)]">
-            <svg viewBox="0 0 24 24" className="w-5 h-5 md:w-7 md:h-7 fill-brand-gold group-hover:scale-110 transition-transform duration-500">
-              <path d="M12 2C8 6 6 9 6 13c0 3.3 2.7 6 6 6s6-2.7 6-6c0-4-2-7-6-11zm0 2.2c2.4 2.8 3.8 5.1 3.8 8.8 0 2.1-1.7 3.8-3.8 3.8S8.2 15.1 8.2 13c0-3.7 1.4-6 3.8-8.8zM12 9c-.6 0-1 .4-1 1s.4 1 1 1 1-.4 1-1-.4-1-1-1zm0 4c-.6 0-1 .4-1 1v2c0 .6.4 1 1 1s1-.4 1-1v-2c0-.6-.4-1-1-1z" />
-            </svg>
-          </div>
-        )}
+        <div className="w-10 h-10 md:w-13 md:h-13 border-2 border-brand-gold/40 group-hover:border-brand-gold rounded-full flex items-center justify-center bg-brand-maroonDark/80 transition-all duration-500 overflow-hidden shadow-[0_0_15px_rgba(212,175,55,0.2)]">
+          <img 
+            src={resolvedLogo} 
+            alt="Mani's Kote Factory Logo" 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 rounded-full" 
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/logo.png';
+            }}
+          />
+        </div>
         <div className="flex flex-col text-left max-w-[140px] xs:max-w-[180px] sm:max-w-none truncate">
           <span className="font-serif text-xs sm:text-sm md:text-lg tracking-[0.12em] sm:tracking-[0.18em] md:tracking-[0.25em] text-brand-gold group-hover:text-brand-goldLight transition-colors uppercase font-bold text-gold-metallic leading-tight truncate">
             {businessName}

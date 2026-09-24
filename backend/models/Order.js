@@ -22,7 +22,7 @@ const OrderSchema = new mongoose.Schema({
   total_amount: { type: Number, required: true },
   discount_code: { type: String },
   discount_amount: { type: Number, default: 0 },
-  status: { type: String, enum: ['pending', 'preparing', 'packed', 'out_for_delivery', 'delivered', 'cancelled', 'Packing', 'Out for Delivery', 'Delivered'], default: 'Packing' },
+  status: { type: String, enum: ['pending', 'preparing', 'packed', 'out_for_delivery', 'delivered', 'cancelled', 'Cancelled', 'Packing', 'Out for Delivery', 'Delivered'], default: 'Packing' },
   delivery_charge: { type: Number, default: 0 },
   expected_delivery_date: { type: String, default: '3-5 Business Days' },
   cancellation_deadline: { type: String, default: 'Within 24 hours of order placement' },

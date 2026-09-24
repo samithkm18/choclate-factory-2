@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState, useEffect } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import ThreeDChocolate from './ThreeDChocolate';
@@ -62,9 +62,23 @@ const BEATS: Beat[] = [
 export const ScrollStory: React.FC = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile breakpoint (< 768px)
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   useLayoutEffect(() => {
     if (!containerRef.current) return;
+    // On mobile: no pinning, just show static at 50% progress to display the 3D model nicely
+    if (isMobile) {
+      setScrollProgress(0.5);
+      return;
+    }
 
     const trigger = ScrollTrigger.create({
       trigger: containerRef.current,
@@ -80,7 +94,7 @@ export const ScrollStory: React.FC = () => {
     return () => {
       trigger.kill();
     };
-  }, []);
+  }, [isMobile]);
 
   // Determine active beat index based on scroll progress mapping
   let activeBeat = 0;
@@ -106,16 +120,20 @@ export const ScrollStory: React.FC = () => {
   const showAnnotations = scrollProgress >= 0.32 && scrollProgress <= 0.72;
 
   return (
-    <div 
-      ref={containerRef} 
-      className="relative w-full h-screen bg-brand-darkBg text-white select-none overflow-hidden flex flex-col md:flex-row items-center px-6 md:px-16"
+    <div
+      ref={containerRef}
+      className={`relative w-full bg-brand-darkBg text-white select-none overflow-hidden flex items-start md:items-center px-4 md:px-16 ${
+        isMobile
+          ? 'flex-col py-10 gap-6 h-auto'
+          : 'flex-row h-screen'
+      }`}
     >
       {/* Background Atmosphere Spotlight */}
       <div className="absolute top-1/2 left-[60%] -translate-x-1/2 -translate-y-1/2 w-[60vw] h-[60vw] bg-[radial-gradient(circle_at_center,rgba(212,175,55,0.04)_0%,rgba(0,0,0,0)_60%)] blur-3xl rounded-full z-0 pointer-events-none" />
 
       {/* LEFT SIDE: Narrative text story (pinned & changing based on scroll) */}
-      <div className="w-full md:w-[35%] z-10 flex flex-col justify-center h-full text-left max-w-md relative select-none">
-        <div className="glass-panel border border-brand-gold/10 p-6 md:p-8 rounded-3xl space-y-6 shadow-2xl relative overflow-hidden backdrop-blur-xl bg-brand-panelBg/75 min-h-[320px] flex flex-col justify-between">
+      <div className="w-full md:w-[35%] z-10 flex flex-col justify-center md:h-full text-left max-w-md relative select-none">
+        <div className="glass-panel border border-brand-gold/10 p-5 md:p-8 rounded-3xl space-y-4 md:space-y-6 shadow-2xl relative overflow-hidden backdrop-blur-xl bg-brand-panelBg/75 flex flex-col justify-between">
           <div className="absolute top-0 left-0 w-2 h-full bg-brand-gold" />
           
           <AnimatePresence mode="wait">
@@ -154,7 +172,7 @@ export const ScrollStory: React.FC = () => {
       </div>
 
       {/* RIGHT SIDE: Viewport Canvas for the Exploding ThreeD Chocolate model */}
-      <div className="w-full md:w-[65%] h-full relative z-10 flex items-center justify-center">
+      <div className="w-full md:w-[65%] md:h-full relative z-10 flex items-center justify-center" style={{ height: isMobile ? 'min(65vw, 320px)' : undefined }}>
         <ThreeDChocolate type="dark" progress={scrollProgress} />
 
         {/* Technical Annotations HUD Layer Overlay */}

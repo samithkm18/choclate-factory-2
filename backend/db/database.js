@@ -47,7 +47,7 @@ export const initDb = async () => {
           { key: 'contact_address', value: '700 Cocoa Boulevard, Suite 100, Chocolate District, Hershey PA 17033' },
           { key: 'delivery_zones', value: '[]' },
           { key: 'announcement_banner', value: '' },
-          { key: 'brand_logo_url', value: '' },
+          { key: 'brand_logo_url', value: '/uploads/images/brand_logo.png' },
           { key: 'instagram_username', value: 'maniskote' },
           { key: 'payment_qr_code', value: '/assets/qr-placeholder.png' },
           { key: 'payment_instructions', value: 'Scan the QR code below using any UPI app and enter UTR code.' }

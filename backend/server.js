@@ -81,7 +81,7 @@ app.get('/api/settings', async (req, res) => {
       contact_address: rows.contact_address || 'https://maps.app.goo.gl/J25KDX7R3QEmaeHj7?g_st=iwb',
       delivery_zones: rows.delivery_zones ? JSON.parse(rows.delivery_zones) : [],
       announcement_banner: rows.announcement_banner || '',
-      brand_logo_url: rows.brand_logo_url || '',
+      brand_logo_url: rows.brand_logo_url || '/uploads/images/brand_logo.png',
       instagram_username: rows.instagram_username || 'maniskote',
       payment_qr_code: rows.payment_qr_code || '/assets/qr-placeholder.png',
       payment_instructions: rows.payment_instructions || 'Scan QR and pay...',

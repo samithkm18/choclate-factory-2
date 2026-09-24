@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useTranslation } from 'react-i18next';
+import { Mail, Phone, MapPin, ExternalLink } from 'lucide-react';
 import ExplorableStudio from '../components/ExplorableStudio';
 import ChocolateShop from '../components/ChocolateShop';
 import CircularShowcase from '../components/CircularShowcase';
@@ -147,12 +148,12 @@ export const Home: React.FC = () => {
       >
         <iframe 
           src="https://www.youtube.com/embed/t5EeaNlx86M?autoplay=1&mute=1&controls=0&loop=1&playlist=t5EeaNlx86M&playsinline=1&enablejsapi=1&showinfo=0&rel=0&iv_load_policy=3&disablekb=1"
-          className="w-full h-full pointer-events-none scale-[1.35]"
+          className="pointer-events-none"
           style={{ 
             position: 'absolute',
             top: '50%',
             left: '50%',
-            transform: 'translate(-50%, -50%)',
+            transform: 'translate(-50%, -50%) scale(1.35)',
             width: '100vw',
             height: '56.25vw',
             minHeight: '100vh',
@@ -361,8 +362,90 @@ export const Home: React.FC = () => {
         </div>
       </section>
 
+      {/* 6. DIRECT CONTACT & FACTORY INFORMATION */}
+      <section className="py-12 md:py-16 px-4 md:px-12 bg-transparent border-t border-brand-maroon/20" id="contact-info">
+        <div className="max-w-7xl mx-auto space-y-8">
+          
+          <div className="text-center space-y-3">
+            <span className="text-[10px] md:text-xs text-brand-gold uppercase tracking-[0.35em] font-extrabold block">
+              ✦ Mani Sales International ✦
+            </span>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold uppercase tracking-widest text-white">
+              Connect With Us
+            </h2>
+            <div className="w-16 h-[2px] bg-brand-gold mx-auto" />
+            <p className="text-zinc-400 text-xs sm:text-sm max-w-xl mx-auto font-medium">
+              Have inquiries about our artisanal chocolates, corporate gifting, or distribution partnerships? Reach out to us directly.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 max-w-5xl mx-auto">
+            
+            {/* Email Card */}
+            <a
+              href="mailto:manisales.international@gmail.com"
+              className="glass-panel p-6 rounded-3xl border border-brand-gold/20 hover:border-brand-gold/60 transition-all duration-300 flex flex-col items-center text-center space-y-3 group hover:scale-[1.02] shadow-xl"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-brand-gold/10 border border-brand-gold/30 flex items-center justify-center text-brand-gold group-hover:bg-brand-gold group-hover:text-brand-maroonDark transition-colors duration-300">
+                <Mail size={22} />
+              </div>
+              <div>
+                <span className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold block">Email Inquiries</span>
+                <span className="text-xs sm:text-sm font-semibold text-brand-goldLight group-hover:text-brand-gold transition-colors break-all mt-1 block">
+                  manisales.international@gmail.com
+                </span>
+              </div>
+              <span className="text-[9px] uppercase tracking-wider text-zinc-400 group-hover:text-white font-bold pt-1">
+                Tap to Send Email →
+              </span>
+            </a>
+
+            {/* Phone Card */}
+            <a
+              href="tel:8660801536"
+              className="glass-panel p-6 rounded-3xl border border-brand-gold/20 hover:border-brand-gold/60 transition-all duration-300 flex flex-col items-center text-center space-y-3 group hover:scale-[1.02] shadow-xl"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-brand-gold/10 border border-brand-gold/30 flex items-center justify-center text-brand-gold group-hover:bg-brand-gold group-hover:text-brand-maroonDark transition-colors duration-300">
+                <Phone size={22} />
+              </div>
+              <div>
+                <span className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold block">Direct Phone</span>
+                <span className="text-sm sm:text-base font-bold font-mono text-white group-hover:text-brand-gold transition-colors mt-1 block">
+                  8660801536
+                </span>
+              </div>
+              <span className="text-[9px] uppercase tracking-wider text-zinc-400 group-hover:text-white font-bold pt-1">
+                Tap to Call Now →
+              </span>
+            </a>
+
+            {/* Google Maps Location Card */}
+            <a
+              href="https://maps.app.goo.gl/J25KDX7R3QEmaeHj7?g_st=iwb"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="glass-panel p-6 rounded-3xl border border-brand-gold/20 hover:border-brand-gold/60 transition-all duration-300 flex flex-col items-center text-center space-y-3 group hover:scale-[1.02] shadow-xl"
+            >
+              <div className="w-12 h-12 rounded-2xl bg-brand-gold/10 border border-brand-gold/30 flex items-center justify-center text-brand-gold group-hover:bg-brand-gold group-hover:text-brand-maroonDark transition-colors duration-300">
+                <MapPin size={22} />
+              </div>
+              <div>
+                <span className="text-[9px] uppercase tracking-widest text-zinc-400 font-bold block">Factory Location</span>
+                <span className="text-xs sm:text-sm font-semibold text-brand-goldLight group-hover:text-brand-gold transition-colors mt-1 inline-flex items-center gap-1 justify-center">
+                  Visit Us on Google Maps <ExternalLink size={13} />
+                </span>
+              </div>
+              <span className="text-[9px] uppercase tracking-wider text-zinc-400 group-hover:text-white font-bold pt-1">
+                Open Directions →
+              </span>
+            </a>
+
+          </div>
+        </div>
+      </section>
+
       {/* STORE LOCATIONS MAP */}
-      <section className="py-16 md:py-20 px-4 md:px-12" id="locations">
+      <section className="py-12 md:py-16 px-4 md:px-12" id="locations">
         <div className="max-w-7xl mx-auto">
           <StoreMap />
         </div>

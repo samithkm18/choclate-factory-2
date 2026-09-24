@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Package, Truck, CheckCircle2, Clock, AlertCircle, RefreshCw, ArrowLeft, Calendar, ShieldCheck, MapPin } from 'lucide-react';
+import { ShoppingBag, Package, Truck, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface OrderItem {
@@ -32,6 +32,7 @@ export const MyOrders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [trackingOrder, setTrackingOrder] = useState<Order | null>(null);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -63,7 +64,10 @@ export const MyOrders: React.FC = () => {
       alert('Invalid order reference.');
       return;
     }
+    if (cancellingId === orderId) return; // Prevent duplicate cancellation requests
     if (!confirm('Are you sure you want to cancel this order?')) return;
+    
+    setCancellingId(orderId);
     try {
       const headers: any = { 'Content-Type': 'application/json' };
       if (userToken) {
@@ -86,6 +90,8 @@ export const MyOrders: React.FC = () => {
 
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
+        // Optimistically update order status in state immediately
+        setOrders(prev => prev.map(o => (o.id === orderId || o._id === orderId) ? { ...o, status: 'Cancelled' } : o));
         alert(data.message || 'Order cancelled successfully.');
         fetchOrders();
       } else {
@@ -94,6 +100,8 @@ export const MyOrders: React.FC = () => {
     } catch (e: any) {
       console.error('Cancel order error:', e);
       alert(e?.message || 'Error connecting to server. Please try again.');
+    } finally {
+      setCancellingId(null);
     }
   };
 
@@ -271,18 +279,21 @@ export const MyOrders: React.FC = () => {
                       }
 
                       if (!isDelivered) {
+                        const isCancellingThis = cancellingId === orderId;
                         return (
                           <button
-                            disabled={!isBeforeDeadline}
+                            disabled={!isBeforeDeadline || isCancellingThis}
                             onClick={() => handleCancelOrder(orderId)}
                             className={`px-4 py-2.5 rounded-xl font-extrabold text-[10px] uppercase tracking-widest transition-all cursor-pointer ${
-                              isBeforeDeadline
-                                ? 'bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white border border-red-500/40 shadow-sm'
-                                : 'bg-zinc-800 text-zinc-500 border border-zinc-700 cursor-not-allowed opacity-50'
+                              isCancellingThis
+                                ? 'bg-red-500/40 text-white border border-red-500/60 animate-pulse cursor-wait'
+                                : isBeforeDeadline
+                                  ? 'bg-red-500/20 hover:bg-red-500 text-red-300 hover:text-white border border-red-500/40 shadow-sm'
+                                  : 'bg-zinc-800 text-zinc-500 border border-zinc-700 cursor-not-allowed opacity-50'
                             }`}
                             title={isBeforeDeadline ? 'Cancel this order before 24h deadline' : 'Cancellation deadline has passed'}
                           >
-                            {isBeforeDeadline ? 'Cancel Order' : 'Deadline Passed'}
+                            {isCancellingThis ? 'Cancelling...' : isBeforeDeadline ? 'Cancel Order' : 'Deadline Passed'}
                           </button>
                         );
                       }

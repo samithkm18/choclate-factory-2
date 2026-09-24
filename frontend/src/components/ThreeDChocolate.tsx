@@ -202,7 +202,7 @@ export const ThreeDChocolate: React.FC<ThreeDChocolateProps> = ({ type = 'dark',
   const selectedColor = colorMap[type] || colorMap.dark;
 
   return (
-    <div className="w-full h-full min-h-[400px] md:min-h-[500px] relative select-none">
+    <div className="w-full h-full min-h-[220px] md:min-h-[500px] relative select-none">
       <Canvas
         shadows
         camera={{ position: [0, 5, 7.5], fov: 42 }}
