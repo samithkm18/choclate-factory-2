@@ -14,6 +14,7 @@ interface ContactMessage {
 
 interface Props {
   token: string;
+  role?: string;
 }
 
 export const CustomerMessages: React.FC<Props> = ({ token }) => {

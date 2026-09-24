@@ -30,7 +30,8 @@ interface ValueItem {
   number: string;
   title: string;
   description: string;
-  icon: React.ElementType;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon: React.FC<{ size?: number; className?: string; [key: string]: any }>;
 }
 
 const VALUES: ValueItem[] = [

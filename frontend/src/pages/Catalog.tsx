@@ -18,6 +18,10 @@ interface Product {
   category: string;
   dietary_tags: string[];
   flavor_profile: { cocoa: number; sweetness: number; notes: string[] };
+  is_bestseller?: boolean;
+  delivery_charge?: number;
+  expected_delivery_date?: string;
+  cancellation_deadline?: string;
 }
 
 // Fallback initial products if backend API is initializing

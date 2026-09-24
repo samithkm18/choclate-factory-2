@@ -18,6 +18,7 @@ interface Order {
   id: number | string;
   customer_name?: string;
   customer_email?: string;
+  customer_phone?: string;
   guest_info?: { name?: string; email?: string; phone?: string } | null;
   items: { name: string; quantity: number; price: number; variant?: string }[];
   total_amount: number;
