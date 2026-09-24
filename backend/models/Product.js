@@ -39,8 +39,13 @@ const ProductSchema = new mongoose.Schema({
   expected_delivery_date: { type: String, default: '3-5 Business Days' },
   cancellation_deadline: { type: String, default: 'Within 24 hours of order placement' },
   cod_available: { type: Boolean, default: true },
-  created_at: { type: Date, default: Date.now }
 });
+
+// Performance Database Indexes
+ProductSchema.index({ category: 1, price: 1 });
+ProductSchema.index({ is_spotlight: 1 });
+ProductSchema.index({ is_bestseller: 1 });
+ProductSchema.index({ created_at: -1 });
 
 export const Product = mongoose.model('Product', ProductSchema);
 export default Product;

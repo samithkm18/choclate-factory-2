@@ -23,57 +23,38 @@ export const OwnerLogin: React.FC = () => {
     const cleanEmail = email.trim().toLowerCase();
     const cleanPass = password.trim();
 
-    // Verification check for owner credentials (supports live API & offline phone fallback)
-    const isOwnerCredentialMatch = 
-      (cleanEmail === 'kotefactory@gmail.com' && cleanPass === 'passwordkotefactory') ||
-      (cleanEmail === 'owner@manis.com' && (cleanPass === 'passwordkotefactory' || cleanPass === 'ownerpassword123'));
-
     try {
       const loginUrl = `${API_BASE_URL}/api/auth/login`;
       const res = await fetch(loginUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: cleanEmail, password: cleanPass })
-      }).catch(() => null);
+      });
 
-      if (res && res.ok) {
-        const data = await res.json();
+      const data = await res.json();
+
+      if (res.ok) {
         if (data.user && data.user.role === 'owner') {
           ownerLogin(data.token, data.user);
           navigate('/owner/dashboard');
           return;
+        } else {
+          setError('Access restricted. Account lacks Owner authorization.');
+        }
+      } else {
+        if (res.status === 401) {
+          setError('Invalid email or password. Please verify credentials.');
+        } else if (res.status === 403) {
+          setError(data.message || 'Account disabled. Contact system administrator.');
+        } else if (res.status === 429) {
+          setError('Too many login attempts. Please try again in a few minutes.');
+        } else {
+          setError(data.message || 'Authentication failed. Please check your credentials.');
         }
       }
-
-      // If network/offline error on phone or if direct match
-      if (isOwnerCredentialMatch) {
-        const fallbackUser: any = {
-          id: 101,
-          name: 'Sujanth S Mani (Owner)',
-          email: cleanEmail,
-          role: 'owner'
-        };
-        const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.owner_valid_session';
-        ownerLogin(mockToken, fallbackUser);
-        navigate('/owner/dashboard');
-        return;
-      }
-
-      setError('Invalid owner email or password. Please check your credentials.');
     } catch (err) {
       console.error('Login error:', err);
-      if (isOwnerCredentialMatch) {
-        const fallbackUser: any = {
-          id: 101,
-          name: 'Sujanth S Mani (Owner)',
-          email: cleanEmail,
-          role: 'owner'
-        };
-        ownerLogin('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.owner_valid_session', fallbackUser);
-        navigate('/owner/dashboard');
-      } else {
-        setError('Verification failed. Please ensure credentials are correct.');
-      }
+      setError('Network connection failed. Unable to connect to authentication server.');
     } finally {
       setLoading(false);
     }
@@ -93,7 +74,7 @@ export const OwnerLogin: React.FC = () => {
         </div>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/25 text-red-400 p-3 rounded-lg text-xs font-semibold text-center">
+          <div className="bg-red-500/10 border border-red-500/25 text-red-400 p-3 rounded-lg text-xs font-semibold text-center animate-in fade-in">
             {error}
           </div>
         )}
@@ -122,7 +103,7 @@ export const OwnerLogin: React.FC = () => {
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 required
-                placeholder="passwordkotefactory"
+                placeholder="••••••••••••"
                 className="w-full bg-brand-darkBg border border-brand-gold/20 focus:border-brand-gold rounded-lg pl-9 pr-3 py-2.5 text-xs text-white outline-none transition-colors"
               />
               <Lock className="absolute left-3 top-3.5 text-zinc-500" size={14} />
@@ -134,7 +115,7 @@ export const OwnerLogin: React.FC = () => {
             disabled={loading}
             className="w-full py-3 bg-brand-gold hover:bg-brand-goldDark text-brand-maroonDark font-bold text-xs uppercase tracking-widest rounded-lg flex items-center justify-center gap-1.5 shadow transition-all duration-300 transform active:scale-95 disabled:opacity-50 cursor-pointer"
           >
-            {loading ? 'Decrypting credentials...' : <><LogIn size={14} /> Unlock Owner Dashboard</>}
+            {loading ? 'Authenticating...' : <><LogIn size={14} /> Unlock Owner Dashboard</>}
           </button>
         </form>
 

@@ -5,6 +5,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { API_BASE_URL } from './config/api';
 
 // Register GSAP ScrollTrigger
 gsap.registerPlugin(ScrollTrigger);
@@ -40,9 +41,12 @@ import OwnerDashboard from './pages/owner/OwnerDashboard';
 import MwcLogin from './pages/mwc/MwcLogin';
 import MwcDashboard from './pages/mwc/MwcDashboard';
 
+// Module-level cache for announcement banner
+let cachedBanner = '';
+
 // Layout wrapper for User portal routes
 const UserLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [banner, setBanner] = useState('');
+  const [banner, setBanner] = useState(cachedBanner);
   const location = useLocation();
 
   // Reset scroll on navigation
@@ -60,27 +64,38 @@ const UserLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
     lenis.on('scroll', ScrollTrigger.update);
 
-    gsap.ticker.add((time) => {
+    const updateRaf = (time: number) => {
       lenis.raf(time * 1000);
-    });
+    };
 
+    gsap.ticker.add(updateRaf);
     gsap.ticker.lagSmoothing(0);
 
     return () => {
+      gsap.ticker.remove(updateRaf);
       lenis.destroy();
-      gsap.ticker.remove(lenis.raf);
     };
   }, []);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/settings')
+    if (cachedBanner) return;
+    const controller = new AbortController();
+
+    fetch(`${API_BASE_URL}/api/settings`, { signal: controller.signal })
       .then(res => res.json())
       .then(data => {
         if (data && data.announcement_banner) {
+          cachedBanner = data.announcement_banner;
           setBanner(data.announcement_banner);
         }
       })
-      .catch(err => console.error('Error loading announcement banner:', err));
+      .catch(err => {
+        if (err.name !== 'AbortError') {
+          console.error('Error loading announcement banner:', err);
+        }
+      });
+
+    return () => controller.abort();
   }, []);
 
   return (

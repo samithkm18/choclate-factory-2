@@ -56,19 +56,34 @@ export const initDb = async () => {
         console.log('System settings seeded.');
       }
 
-      const usersCount = await User.countDocuments();
-      if (usersCount === 0) {
-        console.log('Seeding default user accounts...');
-        const userHash = await bcrypt.hash('userpassword123', 10);
+      const existingOwner = await User.findOne({ email: 'kotefactory@gmail.com' });
+      if (!existingOwner) {
+        console.log('Seeding owner account (kotefactory@gmail.com)...');
         const ownerHash = await bcrypt.hash('passwordkotefactory', 10);
+        await User.create({
+          name: 'Mani Kote Owner',
+          email: 'kotefactory@gmail.com',
+          password_hash: ownerHash,
+          role: 'owner',
+          status: 'active'
+        });
+      }
+
+      const usersCount = await User.countDocuments();
+      if (usersCount <= 1) {
+        console.log('Seeding remaining default user accounts...');
+        const userHash = await bcrypt.hash('userpassword123', 10);
         const mwcHash = await bcrypt.hash('mwcpassword123', 10);
 
-        await User.insertMany([
-          { name: 'Audrey Hepburn', email: 'user@manis.com', password_hash: userHash, role: 'user', status: 'active' },
-          { name: 'Mani Kote', email: 'kotefactory@gmail.com', password_hash: ownerHash, role: 'owner', status: 'active' },
-          { name: 'MWC Developer', email: 'mwc@manis.com', password_hash: mwcHash, role: 'mwc', status: 'active' }
-        ]);
-        console.log('User accounts seeded.');
+        const existingUser = await User.findOne({ email: 'user@manis.com' });
+        if (!existingUser) {
+          await User.create({ name: 'Audrey Hepburn', email: 'user@manis.com', password_hash: userHash, role: 'user', status: 'active' });
+        }
+        const existingMwc = await User.findOne({ email: 'mwc@manis.com' });
+        if (!existingMwc) {
+          await User.create({ name: 'MWC Developer', email: 'mwc@manis.com', password_hash: mwcHash, role: 'mwc', status: 'active' });
+        }
+        console.log('User accounts ready.');
       }
     } catch (seedErr) {
       console.error('Error seeding initial data to MongoDB:', seedErr);

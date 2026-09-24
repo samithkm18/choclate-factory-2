@@ -38,8 +38,13 @@ const OrderSchema = new mongoose.Schema({
   payment_intent_id: { type: String },
   transaction_ref: { type: String },
   rejection_reason: { type: String },
-  created_at: { type: Date, default: Date.now }
 });
+
+// Performance Database Indexes
+OrderSchema.index({ user_id: 1, created_at: -1 });
+OrderSchema.index({ customer_email: 1 });
+OrderSchema.index({ status: 1 });
+OrderSchema.index({ created_at: -1 });
 
 export const Order = mongoose.model('Order', OrderSchema);
 export default Order;
