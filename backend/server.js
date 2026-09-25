@@ -196,7 +196,8 @@ const startServer = async () => {
   }
 };
 
-if (!process.env.VERCEL && process.env.NODE_ENV !== 'test') {
+const isMainEntry = process.argv[1] && (process.argv[1].endsWith('server.js') || process.argv[1].endsWith('server'));
+if (isMainEntry && !process.env.VERCEL) {
   startServer();
 }
 

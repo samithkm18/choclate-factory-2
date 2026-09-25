@@ -4,34 +4,45 @@ import User from '../models/User.js';
 import Product from '../models/Product.js';
 import Setting from '../models/Setting.js';
 
-let mongod = null;
+let isConnecting = false;
 
 export const initDb = async () => {
-  let uri = process.env.MONGODB_URI;
-
-  if (uri) {
-    try {
-      console.log(`Connecting to MongoDB at: ${uri}...`);
-      await mongoose.connect(uri, { serverSelectionTimeoutMS: 3000 });
-      console.log('MongoDB connected successfully');
-    } catch (err) {
-      console.warn(`[Database Warning] Failed to connect to external MongoDB: ${err.message}`);
-    }
+  if (mongoose.connection.readyState === 1) {
+    return;
   }
 
-  // Attempt MongoMemoryServer if not connected
-  if (mongoose.connection.readyState !== 1) {
+  if (isConnecting) {
+    return;
+  }
+
+  isConnecting = true;
+
+  const DEFAULT_ATLAS_URI = 'mongodb+srv://samithkm18:samithkm18@cluster0.jnwsf8z.mongodb.net/kotechocolate?retryWrites=true&w=majority';
+  const uri = process.env.MONGODB_URI || DEFAULT_ATLAS_URI;
+
+  try {
+    console.log('Connecting to MongoDB Atlas database...');
+    await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
+    console.log('MongoDB connected successfully.');
+  } catch (err) {
+    console.warn(`[Database Warning] Primary connection failed: ${err.message}`);
+  }
+
+  // Attempt MongoMemoryServer fallback ONLY in non-serverless local dev
+  if (mongoose.connection.readyState !== 1 && !process.env.VERCEL) {
     try {
       console.log('Starting local MongoMemoryServer fallback...');
       const { MongoMemoryServer } = await import('mongodb-memory-server');
-      mongod = await MongoMemoryServer.create();
-      uri = mongod.getUri();
-      await mongoose.connect(uri);
-      console.log('MongoDB connected successfully (In-Memory Sandbox)');
+      const mongod = await MongoMemoryServer.create();
+      const memUri = mongod.getUri();
+      await mongoose.connect(memUri);
+      console.log('MongoDB connected successfully (In-Memory Sandbox).');
     } catch (memErr) {
-      console.warn('In-memory MongoDB download unavailable, running in static API fallback mode.');
+      console.warn('In-memory MongoDB unavailable.');
     }
   }
+
+  isConnecting = false;
 
   // Seed default data if connected
   if (mongoose.connection.readyState === 1) {
@@ -91,8 +102,8 @@ export const initDb = async () => {
   }
 };
 
-export const query = async (sql, params = []) => [];
-export const queryOne = async (sql, params = []) => null;
-export const execute = async (sql, params = []) => ({ id: null, changes: 0 });
+export const query = async () => [];
+export const queryOne = async () => null;
+export const execute = async () => ({ id: null, changes: 0 });
 
 export default mongoose.connection;
