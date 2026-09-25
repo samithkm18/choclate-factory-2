@@ -28,20 +28,6 @@ export const initDb = async () => {
     console.warn(`[Database Warning] Primary connection failed: ${err.message}`);
   }
 
-  // Attempt MongoMemoryServer fallback ONLY in non-serverless local dev
-  if (mongoose.connection.readyState !== 1 && !process.env.VERCEL) {
-    try {
-      console.log('Starting local MongoMemoryServer fallback...');
-      const { MongoMemoryServer } = await import('mongodb-memory-server');
-      const mongod = await MongoMemoryServer.create();
-      const memUri = mongod.getUri();
-      await mongoose.connect(memUri);
-      console.log('MongoDB connected successfully (In-Memory Sandbox).');
-    } catch (memErr) {
-      console.warn('In-memory MongoDB unavailable.');
-    }
-  }
-
   isConnecting = false;
 
   // Seed default data if connected
