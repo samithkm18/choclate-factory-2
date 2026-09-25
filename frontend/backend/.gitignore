@@ -1,0 +1,23 @@
+# Environment secrets - NEVER commit
+.env
+.env.local
+.env.*.local
+
+# SQLite database
+db/*.sqlite
+db/*.sqlite-shm
+db/*.sqlite-wal
+
+# Uploaded files
+public/uploads/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Dependencies
+node_modules/
+
+# OS
+.DS_Store
+Thumbs.db
