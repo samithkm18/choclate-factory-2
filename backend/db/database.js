@@ -7,11 +7,7 @@ import Setting from '../models/Setting.js';
 let isConnecting = false;
 
 export const initDb = async () => {
-  if (mongoose.connection.readyState === 1) {
-    return;
-  }
-
-  if (isConnecting) {
+  if (mongoose.connection.readyState === 1 || isConnecting) {
     return;
   }
 
@@ -22,13 +18,13 @@ export const initDb = async () => {
 
   try {
     console.log('Connecting to MongoDB Atlas database...');
-    await mongoose.connect(uri, { serverSelectionTimeoutMS: 5000 });
+    await mongoose.connect(uri, { serverSelectionTimeoutMS: 3000 });
     console.log('MongoDB connected successfully.');
   } catch (err) {
-    console.warn(`[Database Warning] Primary connection failed: ${err.message}`);
+    console.warn(`[Database Warning] Connection failed: ${err.message}`);
+  } finally {
+    isConnecting = false;
   }
-
-  isConnecting = false;
 
   // Seed default data if connected
   if (mongoose.connection.readyState === 1) {
