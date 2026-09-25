@@ -1,21 +1,20 @@
 /**
  * Vercel Serverless Function Entrypoint
- * Full Express App with ESM imports
  */
 import dotenv from 'dotenv';
 dotenv.config();
 
 import express from 'express';
 import cors from 'cors';
-import { initDb } from '../backend/db/database.js';
+import { initDb } from '../frontend/backend/db/database.js';
 
-import authRouter from '../backend/routes/auth.js';
-import productsRouter from '../backend/routes/products.js';
-import ordersRouter from '../backend/routes/orders.js';
-import ownerRouter from '../backend/routes/owner.js';
-import mwcRouter from '../backend/routes/mwc.js';
-import jobsRouter from '../backend/routes/jobs.js';
-import Setting from '../backend/models/Setting.js';
+import authRouter from '../frontend/backend/routes/auth.js';
+import productsRouter from '../frontend/backend/routes/products.js';
+import ordersRouter from '../frontend/backend/routes/orders.js';
+import ownerRouter from '../frontend/backend/routes/owner.js';
+import mwcRouter from '../frontend/backend/routes/mwc.js';
+import jobsRouter from '../frontend/backend/routes/jobs.js';
+import Setting from '../frontend/backend/models/Setting.js';
 
 const app = express();
 
@@ -44,14 +43,14 @@ app.use(async (req, res, next) => {
   next();
 });
 
-app.use('/api/auth', authRouter);
-app.use('/api/products', productsRouter);
-app.use('/api/orders', ordersRouter);
-app.use('/api/owner', ownerRouter);
-app.use('/api/mwc', mwcRouter);
-app.use('/api/jobs', jobsRouter);
+app.use(['/api/auth', '/auth'], authRouter);
+app.use(['/api/products', '/products'], productsRouter);
+app.use(['/api/orders', '/orders'], ordersRouter);
+app.use(['/api/owner', '/owner'], ownerRouter);
+app.use(['/api/mwc', '/mwc'], mwcRouter);
+app.use(['/api/jobs', '/jobs'], jobsRouter);
 
-app.get('/api/settings', async (req, res) => {
+app.get(['/api/settings', '/settings'], async (req, res) => {
   try {
     const settings = await Setting.find({});
     const rows = {};
@@ -76,7 +75,7 @@ app.get('/api/settings', async (req, res) => {
   }
 });
 
-app.get('/api', (req, res) => {
+app.get(['/api', '/'], (req, res) => {
   res.json({ status: 'ok', message: "Mani's Kote Factory API is running on Vercel." });
 });
 
