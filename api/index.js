@@ -29,26 +29,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // ─── Build Express App ────────────────────────────────────────────────────────
 const app = express();
 
-// CORS — allow all .vercel.app origins + localhost dev
-const allowedOrigins = [
-  process.env.FRONTEND_URL,
-  'http://localhost:5173',
-  'http://localhost:3000',
-  'http://127.0.0.1:5173'
-].filter(Boolean);
+// Broadcast stub — owner routes call app.get('broadcastOwnerMessage')
+app.set('broadcastOwnerMessage', () => {});
 
+// CORS — allow all origins for Vercel deployment
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (
-      allowedOrigins.includes(origin) ||
-      origin.endsWith('.vercel.app') ||
-      process.env.NODE_ENV !== 'production'
-    ) {
-      return callback(null, true);
-    }
-    return callback(new Error('CORS policy: Origin not allowed.'));
-  },
+  origin: true,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
@@ -57,16 +43,31 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// DB init middleware — ensures DB connection is established before route execution
+let dbInitialized = false;
+app.use(async (req, res, next) => {
+  if (!dbInitialized) {
+    try {
+      await initDb();
+      dbInitialized = true;
+    } catch (err) {
+      console.error('DB Init Error:', err.message);
+    }
+  }
+  next();
+});
+
 // ─── Routes ──────────────────────────────────────────────────────────────────
-app.use('/api/auth', authRouter);
-app.use('/api/products', productsRouter);
-app.use('/api/orders', ordersRouter);
-app.use('/api/owner', ownerRouter);
-app.use('/api/mwc', mwcRouter);
-app.use('/api/jobs', jobsRouter);
+// Support both /api/path and /path
+app.use(['/api/auth', '/auth'], authRouter);
+app.use(['/api/products', '/products'], productsRouter);
+app.use(['/api/orders', '/orders'], ordersRouter);
+app.use(['/api/owner', '/owner'], ownerRouter);
+app.use(['/api/mwc', '/mwc'], mwcRouter);
+app.use(['/api/jobs', '/jobs'], jobsRouter);
 
 // Public settings endpoint
-app.get('/api/settings', async (req, res) => {
+app.get(['/api/settings', '/settings'], async (req, res) => {
   try {
     const settings = await Setting.find({});
     const rows = {};
@@ -92,27 +93,14 @@ app.get('/api/settings', async (req, res) => {
 });
 
 // Health check
-app.get('/api', (req, res) => {
+app.get(['/api', '/'], (req, res) => {
   res.json({ status: 'ok', message: "Mani's Kote Factory API is running on Vercel." });
 });
 
-// Broadcast stub — owner routes call app.get('broadcastOwnerMessage')
-// In serverless we cannot do WebSockets, so we provide a no-op
-app.set('broadcastOwnerMessage', () => {});
+// Global error handler for Express
+app.use((err, req, res, next) => {
+  console.error('Express Error Handler:', err);
+  res.status(500).json({ message: 'Server error', error: err.message });
+});
 
-// ─── DB init (cached across warm invocations) ────────────────────────────────
-let dbInitialized = false;
-
-// ─── Vercel Serverless Handler ────────────────────────────────────────────────
-export default async function handler(req, res) {
-  if (!dbInitialized) {
-    try {
-      await initDb();
-      dbInitialized = true;
-    } catch (err) {
-      console.error('DB Init Error:', err.message);
-      // Continue anyway — DB errors handled per-route
-    }
-  }
-  return app(req, res);
-}
+export default app;
