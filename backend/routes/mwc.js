@@ -12,6 +12,7 @@ import Poster from '../models/Poster.js';
 import Review from '../models/Review.js';
 import Coupon from '../models/Coupon.js';
 import Location from '../models/Location.js';
+import os from 'os';
 import AuditLog from '../models/AuditLog.js';
 import { authenticate, authorizeRoles } from '../middleware/auth.js';
 import { logAction } from '../utils/audit.js';
@@ -20,15 +21,19 @@ import { uploadToCloudinary, deleteFromCloudinary } from '../utils/storage.js';
 const router = express.Router();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Setup folder structure for uploads
-const uploadBase = path.resolve(__dirname, '../public/uploads');
-const folders = ['/images', '/videos'];
-folders.forEach(f => {
-  const dir = path.join(uploadBase, f);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-});
+// Setup folder structure for uploads (uses /tmp on Vercel to avoid EROFS)
+const uploadBase = process.env.VERCEL ? path.join(os.tmpdir(), 'uploads') : path.resolve(__dirname, '../public/uploads');
+try {
+  const folders = ['/images', '/videos'];
+  folders.forEach(f => {
+    const dir = path.join(uploadBase, f);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+  });
+} catch (err) {
+  console.warn('[Storage] Upload directory creation skipped:', err.message);
+}
 
 // Multer disk storage config
 const storage = multer.diskStorage({
