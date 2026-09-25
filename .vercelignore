@@ -1,10 +1,15 @@
 # Vercel Ignore File
-backend/
+# Do NOT ignore backend/ — it's imported by api/index.js as a serverless function
 node_modules/
 .git/
-.env*
-!frontend/.env.example
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
 *.sqlite
 *.log
 scratch/
 images/
+backend/public/uploads/
+frontend/dist/
